@@ -1,6 +1,8 @@
+import { About } from './components/About';
 import { Footer } from './components/Footer';
 import { Header } from './components/Header';
 import { Hero } from './components/Hero';
+import { TechStack } from './components/TechStack';
 import projectsData from './data/projects.json';
 import { useTheme } from './lib/theme';
 import type { ProjectItem } from './lib/types';
@@ -15,6 +17,8 @@ export function App() {
       <Header theme={theme} onToggleTheme={toggleTheme} />
       <main id="contenido-principal" className="flex-1">
         <Hero projects={projects} />
+        <About />
+        <TechStack projects={projects} />
       </main>
       <Footer />
     </div>
