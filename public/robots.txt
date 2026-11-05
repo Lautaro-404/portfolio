@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://lautaro-ponzina.vercel.app/sitemap.xml

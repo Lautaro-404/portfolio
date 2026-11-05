@@ -16,6 +16,12 @@ export function App() {
 
   return (
     <div className="min-h-screen flex flex-col bg-[var(--bg-primary)] text-[var(--text-primary)]">
+      <a
+        href="#contenido-principal"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[100] focus:border focus:border-[var(--accent-primary)] focus:bg-[var(--bg-primary)] focus:px-4 focus:py-2 focus:font-mono focus:text-xs focus:text-[var(--text-primary)]"
+      >
+        Saltar al contenido principal
+      </a>
       <Header theme={theme} onToggleTheme={toggleTheme} />
       <main id="contenido-principal" className="flex-1">
         <Hero projects={projects} />

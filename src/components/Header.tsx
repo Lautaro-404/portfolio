@@ -65,7 +65,7 @@ export function Header({ theme, onToggleTheme }: HeaderProps) {
           <button
             type="button"
             onClick={onToggleTheme}
-            className="inline-flex h-9 items-center gap-2 border border-[var(--border-strong)] bg-[var(--bg-surface)] px-3 font-mono text-xs text-[var(--text-secondary)] transition-colors hover:border-[var(--accent-primary)] hover:text-[var(--text-primary)] cursor-pointer"
+            className="inline-flex h-9 items-center gap-2 border border-[var(--border-strong)] bg-[var(--bg-surface)] px-2.5 sm:px-3 font-mono text-xs whitespace-nowrap text-[var(--text-secondary)] transition-colors hover:border-[var(--accent-primary)] hover:text-[var(--text-primary)] cursor-pointer"
             aria-label={
               theme === 'dark'
                 ? 'Cambiar a modo claro'
@@ -73,7 +73,7 @@ export function Header({ theme, onToggleTheme }: HeaderProps) {
             }
           >
             <span
-              className="h-2 w-2"
+              className="h-2 w-2 shrink-0"
               style={{
                 backgroundColor:
                   theme === 'dark'
@@ -82,7 +82,10 @@ export function Header({ theme, onToggleTheme }: HeaderProps) {
               }}
               aria-hidden="true"
             />
-            <span>{theme === 'dark' ? 'MODO: OSCURO' : 'MODO: CLARO'}</span>
+            <span>
+              <span className="hidden sm:inline">MODO: </span>
+              {theme === 'dark' ? 'OSCURO' : 'CLARO'}
+            </span>
           </button>
 
           <button

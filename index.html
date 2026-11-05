@@ -3,6 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="sitemap" type="application/xml" title="Sitemap" href="/sitemap.xml" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="page-type" content="software" />
     <meta name="site-kind" content="software" />
@@ -11,7 +12,30 @@
       content="Portafolio de Lautaro Ponzina, desarrollador Full Stack formado en la UTN Facultad Regional San Rafael (Mendoza, Argentina). Proyectos en React, TypeScript, Java Spring Boot, Flutter, Python y PostgreSQL."
     />
     <meta name="author" content="Lautaro Ponzina" />
-    <meta name="theme-color" content="#0A0C10" />
+    <meta name="theme-color" content="#090B0E" />
+
+    <!-- Open Graph / Social -->
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="es_AR" />
+    <meta
+      property="og:title"
+      content="Lautaro Ponzina | Desarrollador Full Stack — UTN San Rafael"
+    />
+    <meta
+      property="og:description"
+      content="Desarrollador Full Stack de software web y móvil formado en la UTN Facultad Regional San Rafael. Proyectos reales en React, Java Spring Boot, Flutter, PostgreSQL y Supabase."
+    />
+    <meta property="og:url" content="https://lautaro-ponzina.vercel.app/" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta
+      name="twitter:title"
+      content="Lautaro Ponzina | Desarrollador Full Stack — UTN San Rafael"
+    />
+    <meta
+      name="twitter:description"
+      content="Desarrollador Full Stack formado en la UTN Facultad Regional San Rafael (Mendoza, Argentina)."
+    />
+
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -22,6 +46,12 @@
     <script>
       (function () {
         try {
+          var params = new URLSearchParams(window.location.search);
+          var urlTheme = params.get('theme');
+          if (urlTheme === 'light' || urlTheme === 'dark') {
+            document.documentElement.setAttribute('data-theme', urlTheme);
+            return;
+          }
           var saved = localStorage.getItem('lp-theme');
           if (saved === 'light' || saved === 'dark') {
             document.documentElement.setAttribute('data-theme', saved);
