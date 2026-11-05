@@ -1,13 +1,13 @@
-import { About } from './components/About';
-import { Contact } from './components/Contact';
-import { Footer } from './components/Footer';
-import { Header } from './components/Header';
-import { Hero } from './components/Hero';
-import { Projects } from './components/Projects';
-import { TechStack } from './components/TechStack';
-import projectsData from './data/projects.json';
-import { useTheme } from './lib/theme';
-import type { ProjectItem } from './lib/types';
+import { About } from '@/components/About';
+import { Contact } from '@/components/Contact';
+import { Footer } from '@/components/Footer';
+import { Header } from '@/components/Header';
+import { Hero } from '@/components/Hero';
+import { Projects } from '@/components/Projects';
+import { TechStack } from '@/components/TechStack';
+import projectsData from '@/data/projects.json';
+import { useTheme } from '@/lib/theme';
+import type { ProjectItem } from '@/lib/types';
 
 const projects = projectsData as ProjectItem[];
 
