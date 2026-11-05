@@ -1,0 +1,56 @@
+{
+  "_config": {
+    "includeOnly": [
+      "yokai-hardware-frontend",
+      "ClinAppMobile"
+    ]
+  },
+  "yokai-hardware-frontend": {
+    "title": "Yokai Hardware — E-Commerce Full Stack",
+    "subtitle": "React + Vite SPA / Java Spring Boot REST API / PostgreSQL 16 + Flyway",
+    "description": "Plataforma e-commerce completa de hardware y computación desarrollada como Proyecto Integrador de Programación IV en la UTN Facultad Regional San Rafael. Cuenta con catálogo filtrable, carrito persistente, checkout transaccional con control de concurrencia de stock y panel de administración con seguridad JWT.",
+    "architectureNote": "Arquitectura en capas desacopladas: Frontend SPA en React desplegado en Vercel y Backend RESTful en Java + Spring Boot dockerizado en Render con migraciones versionadas en Flyway sobre PostgreSQL.",
+    "homepage": "https://yokai-hardware-frontend.vercel.app",
+    "secondaryUrl": {
+      "label": "Swagger OpenAPI (Render)",
+      "url": "https://yokai-hardware-api.onrender.com/swagger-ui.html"
+    },
+    "featured": true,
+    "order": 1,
+    "topics": [
+      "react",
+      "java",
+      "postgresql",
+      "docker",
+      "tailwindcss",
+      "vercel"
+    ],
+    "highlights": [
+      "Frontend SPA en React + Vite desplegado en Vercel con rutas protegidas por rol (Cliente y Admin).",
+      "API RESTful en Java + Spring Boot con autenticación JWT HMAC-SHA256 y documentación OpenAPI / Swagger activa en Render.",
+      "Persistencia transaccional en PostgreSQL con migraciones DDL automáticas (Flyway V1-V9) y contenedor Docker multi-etapa."
+    ]
+  },
+  "ClinAppMobile": {
+    "title": "ClinApp Mobile — Plataforma de Delivery en Tiempo Real",
+    "subtitle": "Flutter (Android & iOS) / Supabase Realtime & Edge Functions / Mercado Pago",
+    "description": "Plataforma móvil de pedidos a domicilio diseñada para General Alvear, Mendoza, construida en Flutter y Dart bajo arquitectura Feature-First con Riverpod. Integra catálogo de comercios locales, cotización autoritativa en servidor, pagos con Mercado Pago y seguimiento de pedidos en vivo.",
+    "architectureNote": "Cliente móvil multiplataforma conectado a Supabase (PostgreSQL + Auth + Realtime) con cálculo de totales y preferencias de pago delegados a Edge Functions seguras.",
+    "homepage": "https://clinapp-mobile.vercel.app",
+    "featured": true,
+    "privateRepo": true,
+    "order": 2,
+    "topics": [
+      "flutter",
+      "supabase",
+      "postgresql",
+      "typescript",
+      "vercel"
+    ],
+    "highlights": [
+      "Arquitectura Feature-First en Flutter + Riverpod con paneles diferenciados para Cliente, Comercio, Repartidor y Administrador.",
+      "Checkout seguro mediante Edge Functions (quote_order y create_mp_preference) integradas con Mercado Pago.",
+      "Seguimiento en tiempo real con Supabase Realtime a través de las 5 etapas operativas del pedido."
+    ]
+  }
+}

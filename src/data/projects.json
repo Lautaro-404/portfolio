@@ -1,0 +1,143 @@
+[
+  {
+    "name": "yokai-hardware-frontend",
+    "title": "Yokai Hardware — E-Commerce Full Stack",
+    "subtitle": "React + Vite SPA / Java Spring Boot REST API / PostgreSQL 16 + Flyway",
+    "description": "Plataforma e-commerce completa de hardware y computación desarrollada como Proyecto Integrador de Programación IV en la UTN Facultad Regional San Rafael. Cuenta con catálogo filtrable, carrito persistente, checkout transaccional con control de concurrencia de stock y panel de administración con seguridad JWT.",
+    "architectureNote": "Arquitectura en capas desacopladas: Frontend SPA en React desplegado en Vercel y Backend RESTful en Java + Spring Boot dockerizado en Render con migraciones versionadas en Flyway sobre PostgreSQL.",
+    "html_url": "https://github.com/Lautaro-404/yokai-hardware-frontend",
+    "homepage": "https://yokai-hardware-frontend.vercel.app",
+    "secondaryUrl": {
+      "label": "Swagger OpenAPI (Render)",
+      "url": "https://yokai-hardware-api.onrender.com/swagger-ui.html"
+    },
+    "topics": [
+      "react",
+      "java",
+      "postgresql",
+      "docker",
+      "tailwindcss",
+      "vercel"
+    ],
+    "languages": [
+      {
+        "name": "HTML",
+        "bytes": 1213705,
+        "percentage": 60.4
+      },
+      {
+        "name": "Java",
+        "bytes": 307970,
+        "percentage": 15.3
+      },
+      {
+        "name": "JavaScript",
+        "bytes": 292031,
+        "percentage": 14.5
+      },
+      {
+        "name": "Python",
+        "bytes": 187302,
+        "percentage": 9.3
+      },
+      {
+        "name": "PLpgSQL",
+        "bytes": 7209,
+        "percentage": 0.4
+      },
+      {
+        "name": "CSS",
+        "bytes": 1267,
+        "percentage": 0.1
+      },
+      {
+        "name": "Dockerfile",
+        "bytes": 1083,
+        "percentage": 0.1
+      }
+    ],
+    "stargazers_count": 0,
+    "pushed_at": "2026-11-03T22:22:27Z",
+    "featured": true,
+    "privateRepo": false,
+    "order": 1,
+    "highlights": [
+      "Frontend SPA en React + Vite desplegado en Vercel con rutas protegidas por rol (Cliente y Admin).",
+      "API RESTful en Java + Spring Boot con autenticación JWT HMAC-SHA256 y documentación OpenAPI / Swagger activa en Render.",
+      "Persistencia transaccional en PostgreSQL con migraciones DDL automáticas (Flyway V1-V9) y contenedor Docker multi-etapa."
+    ]
+  },
+  {
+    "name": "ClinAppMobile",
+    "title": "ClinApp Mobile — Plataforma de Delivery en Tiempo Real",
+    "subtitle": "Flutter (Android & iOS) / Supabase Realtime & Edge Functions / Mercado Pago",
+    "description": "Plataforma móvil de pedidos a domicilio diseñada para General Alvear, Mendoza, construida en Flutter y Dart bajo arquitectura Feature-First con Riverpod. Integra catálogo de comercios locales, cotización autoritativa en servidor, pagos con Mercado Pago y seguimiento de pedidos en vivo.",
+    "architectureNote": "Cliente móvil multiplataforma conectado a Supabase (PostgreSQL + Auth + Realtime) con cálculo de totales y preferencias de pago delegados a Edge Functions seguras.",
+    "html_url": "https://github.com/Lautaro-404/ClinAppMobile",
+    "homepage": "https://clinapp-mobile.vercel.app",
+    "topics": [
+      "flutter",
+      "supabase",
+      "postgresql",
+      "typescript",
+      "vercel"
+    ],
+    "languages": [
+      {
+        "name": "Dart",
+        "bytes": 1147478,
+        "percentage": 55.8
+      },
+      {
+        "name": "JavaScript",
+        "bytes": 390043,
+        "percentage": 19
+      },
+      {
+        "name": "HTML",
+        "bytes": 361018,
+        "percentage": 17.6
+      },
+      {
+        "name": "PLpgSQL",
+        "bytes": 69261,
+        "percentage": 3.4
+      },
+      {
+        "name": "TypeScript",
+        "bytes": 62145,
+        "percentage": 3
+      },
+      {
+        "name": "CSS",
+        "bytes": 23579,
+        "percentage": 1.1
+      },
+      {
+        "name": "Swift",
+        "bytes": 900,
+        "percentage": 0
+      },
+      {
+        "name": "Kotlin",
+        "bytes": 116,
+        "percentage": 0
+      },
+      {
+        "name": "Objective-C",
+        "bytes": 38,
+        "percentage": 0
+      }
+    ],
+    "stargazers_count": 0,
+    "pushed_at": "2026-11-03T05:09:12Z",
+    "featured": true,
+    "privateRepo": true,
+    "order": 2,
+    "highlights": [
+      "Arquitectura Feature-First en Flutter + Riverpod con paneles diferenciados para Cliente, Comercio, Repartidor y Administrador.",
+      "Checkout seguro mediante Edge Functions (quote_order y create_mp_preference) integradas con Mercado Pago.",
+      "Seguimiento en tiempo real con Supabase Realtime a través de las 5 etapas operativas del pedido."
+    ]
+  }
+]
