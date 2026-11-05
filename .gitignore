@@ -12,6 +12,27 @@ dist
 dist-ssr
 *.local
 
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Vercel & Agent directories
+.vercel
+.agents
+.claude
+.codex
+.cursor
+.gemini
+.github
+.kilo
+.kimi
+.opencode
+.pi
+.warp
+.zed
+skills-lock.json
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
