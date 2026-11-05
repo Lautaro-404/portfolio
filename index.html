@@ -1,10 +1,44 @@
 <!doctype html>
-<html lang="en">
+<html lang="es" data-type="software" data-radius="sharp">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>portfolio</title>
+    <meta name="page-type" content="software" />
+    <meta name="site-kind" content="software" />
+    <meta
+      name="description"
+      content="Portafolio de Lautaro Ponzina, desarrollador Full Stack formado en la UTN Facultad Regional San Rafael (Mendoza, Argentina). Proyectos en React, TypeScript, Java Spring Boot, Flutter, Python y PostgreSQL."
+    />
+    <meta name="author" content="Lautaro Ponzina" />
+    <meta name="theme-color" content="#0A0C10" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <title>Lautaro Ponzina | Desarrollador Full Stack — UTN San Rafael</title>
+    <script>
+      (function () {
+        try {
+          var saved = localStorage.getItem('lp-theme');
+          if (saved === 'light' || saved === 'dark') {
+            document.documentElement.setAttribute('data-theme', saved);
+          } else {
+            var prefersLight =
+              window.matchMedia &&
+              window.matchMedia('(prefers-color-scheme: light)').matches;
+            document.documentElement.setAttribute(
+              'data-theme',
+              prefersLight ? 'light' : 'dark'
+            );
+          }
+        } catch (e) {
+          document.documentElement.setAttribute('data-theme', 'dark');
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>
