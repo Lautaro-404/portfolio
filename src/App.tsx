@@ -2,6 +2,7 @@ import { About } from './components/About';
 import { Footer } from './components/Footer';
 import { Header } from './components/Header';
 import { Hero } from './components/Hero';
+import { Projects } from './components/Projects';
 import { TechStack } from './components/TechStack';
 import projectsData from './data/projects.json';
 import { useTheme } from './lib/theme';
@@ -19,6 +20,7 @@ export function App() {
         <Hero projects={projects} />
         <About />
         <TechStack projects={projects} />
+        <Projects projects={projects} />
       </main>
       <Footer />
     </div>
