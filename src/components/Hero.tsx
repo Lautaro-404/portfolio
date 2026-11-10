@@ -1,4 +1,5 @@
 import type { ProjectItem } from '../lib/types';
+import { Button } from './ui/Button';
 
 interface HeroProps {
   projects: ProjectItem[];
@@ -51,7 +52,7 @@ export function Hero({ projects }: HeroProps) {
     >
       <div className="wrap grid grid-cols-1 items-center gap-10 lg:grid-cols-12 lg:gap-12">
         {/* Left column: primary statement and 2 actions */}
-        <div className="flex flex-col items-start lg:col-span-7">
+        <div className="enter flex flex-col items-start lg:col-span-7">
           <div className="mb-5 inline-flex items-center gap-2.5 border border-[var(--border-strong)] bg-[var(--bg-surface)] px-3 py-1.5 font-mono text-xs text-[var(--text-secondary)]">
             <span
               className="h-2 w-2 bg-[var(--accent-primary)]"
@@ -75,19 +76,19 @@ export function Hero({ projects }: HeroProps) {
           </p>
 
           <div className="mt-8 flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center">
-            <a
+            <Button
               href="#proyectos"
-              className="btn-tech-primary w-full sm:w-auto"
+              className="w-full sm:w-auto"
             >
               <span>Explorar proyectos</span>
               <span aria-hidden="true">-&gt;</span>
-            </a>
-            <a
-              href="#contacto"
-              className="btn-tech-secondary w-full sm:w-auto"
+            </Button>
+            <Button
+              href="#contacto" variant="secondary"
+              className="w-full sm:w-auto"
             >
               <span>Enviar consulta</span>
-            </a>
+            </Button>
           </div>
 
           <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-[var(--border-subtle)] pt-5 font-mono text-xs text-[var(--text-muted)]">

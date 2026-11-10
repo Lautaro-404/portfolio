@@ -1,7 +1,9 @@
+import { Container } from './ui/Container';
+
 export function Footer() {
   return (
     <footer className="border-t border-[var(--border-subtle)] bg-[var(--bg-surface)] py-8">
-      <div className="wrap flex flex-col items-start justify-between gap-4 font-mono text-xs text-[var(--text-muted)] sm:flex-row sm:items-center">
+      <Container className="flex flex-col items-start justify-between gap-4 font-mono text-xs text-[var(--text-muted)] sm:flex-row sm:items-center">
         <div>
           <span className="font-semibold text-[var(--text-primary)]">
             Lautaro Ponzina
@@ -32,7 +34,7 @@ export function Footer() {
             ponzinalautaro6@gmail.com
           </a>
         </div>
-      </div>
+      </Container>
     </footer>
   );
 }

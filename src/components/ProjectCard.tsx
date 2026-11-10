@@ -1,4 +1,6 @@
 import { getTechItemsForProject } from '../data/tech';
+import { Badge } from './ui/Badge';
+import { Button } from './ui/Button';
 import type { ProjectItem } from '../lib/types';
 import { TechIcon } from './TechStack';
 
@@ -146,13 +148,10 @@ export function ProjectCard({ project, index }: ProjectCardProps) {
             </div>
             <div className="flex flex-wrap gap-2">
               {mappedTech.map((tech) => (
-                <span
-                  key={tech.id}
-                  className="inline-flex items-center gap-2 border border-[var(--border-subtle)] bg-[var(--bg-primary)] px-2.5 py-1 font-mono text-xs text-[var(--text-primary)]"
-                >
+                <Badge key={tech.id}>
                   <TechIcon item={tech} size={14} />
                   <span>{tech.name}</span>
-                </span>
+                </Badge>
               ))}
             </div>
           </div>
@@ -161,29 +160,29 @@ export function ProjectCard({ project, index }: ProjectCardProps) {
         {/* Action links: Repo, Live Demo, Secondary URL (Swagger) */}
         <div className="mt-8 flex flex-wrap items-center gap-3 border-t border-[var(--border-subtle)] pt-5">
           {project.homepage && (
-            <a
+            <Button
               href={project.homepage}
               target="_blank"
               rel="noopener noreferrer"
-              className="btn-tech-primary w-full sm:w-auto"
+              className="w-full sm:w-auto"
             >
               <span>Abrir demo en vivo</span>
               <span aria-hidden="true">-&gt;</span>
-            </a>
+            </Button>
           )}
 
-          <a
-            href={project.html_url}
+          <Button
+            href={project.html_url} variant="secondary"
             target="_blank"
             rel="noopener noreferrer"
-            className="btn-tech-secondary w-full sm:w-auto"
+            className="w-full sm:w-auto"
           >
             <span>
               {project.privateRepo
                 ? 'Repositorio en GitHub (Privado)'
                 : 'Ver código en GitHub'}
             </span>
-          </a>
+          </Button>
 
           {project.secondaryUrl && (
             <a

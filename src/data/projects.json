@@ -59,7 +59,7 @@
     "stargazers_count": 0,
     "pushed_at": "2026-11-03T22:22:27Z",
     "featured": true,
-    "privateRepo": false,
+    "privateRepo": true,
     "order": 1,
     "highlights": [
       "Frontend SPA en React + Vite desplegado en Vercel con rutas protegidas por rol (Cliente y Admin).",
