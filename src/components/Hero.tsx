@@ -117,8 +117,8 @@ export function Hero() {
                 <img
                   src="/foto-perfil.jpg"
                   alt={`Retrato de ${OWNER_NAME}`}
-                  width={640}
-                  height={800}
+                  width={1280}
+                  height={1280}
                   fetchPriority="high"
                   decoding="async"
                   className="h-full w-full object-cover"
