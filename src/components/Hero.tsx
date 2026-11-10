@@ -4,9 +4,9 @@ import { Container } from './ui/Container';
 
 /**
  * PORTRAIT: to replace the placeholder, drop the photo in `public/` (for example
- * `public/foto-perfil.webp`, portrait 4:5, at least 800x1000) and set the path below.
+ * `public/foto-perfil.webp`, portrait 4:5) and set the path below.
  */
-const PORTRAIT_SRC: string | null = null;
+const PORTRAIT_SRC: string | null = '/foto-perfil.jpg';
 
 const GITHUB_URL = 'https://github.com/Lautaro-404';
 const LINKEDIN_URL = 'https://www.linkedin.com/in/lautaro-ponzina-90878932a/';
@@ -124,8 +124,8 @@ export function Hero() {
                 <img
                   src={PORTRAIT_SRC}
                   alt="Retrato de Lautaro Ponzina"
-                  width={800}
-                  height={1000}
+                  width={640}
+                  height={800}
                   className="h-full w-full object-cover"
                 />
               ) : (
