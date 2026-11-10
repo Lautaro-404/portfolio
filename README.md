@@ -37,3 +37,25 @@ Copiá `.env.example` a `.env` para configurar el entorno local o las variables 
 | `CONTACT_EMAIL` | Correo de destino de las consultas (`ponzinalautaro6@gmail.com`) |
 | `RESEND_FROM_EMAIL` | Remitente verificado en Resend (`onboarding@resend.dev` en pruebas) |
 | `ALLOWED_ORIGIN` | Orígenes adicionales habilitados para CORS en `/api/contact` |
+
+## Actualización Automática de Proyectos (GitHub Actions + Vercel)
+
+El repositorio incluye el workflow [weekly-redeploy.yml](file:///.github/workflows/weekly-redeploy.yml) que ejecuta una reconstrucción programada para mantener actualizados los repositorios y porcentajes de lenguajes mostrados en el portafolio sin intervención manual.
+
+- **Frecuencia programada:** Todos los lunes a las 12:00 UTC (09:00 ART) mediante un trigger `schedule` (cron).
+- **Ejecución manual:** Disponible en cualquier momento desde la pestaña **Actions** de GitHub o mediante GitHub CLI con:
+  ```bash
+  gh workflow run weekly-redeploy.yml
+  ```
+
+### Configuración del Deploy Hook en Vercel
+
+1. En el panel de control de Vercel, ingresá a tu proyecto **portfolio**.
+2. Dirigite a **Settings** > **Git** > **Deploy Hooks**.
+3. Creá un nuevo hook con nombre descriptivo (por ejemplo: `weekly-github-sync`) asignado a la rama `main`.
+4. Copiá la URL generada (`https://api.vercel.com/v1/integrations/deploy/...`).
+5. Registrá el secreto en el repositorio de GitHub sin exponer el valor:
+   ```bash
+   gh secret set VERCEL_DEPLOY_HOOK_URL
+   ```
+   (El CLI solicitará pegar la URL de forma segura sin imprimirla en terminal ni guardarla en archivos locales).

@@ -1,0 +1,38 @@
+name: Weekly Redeploy on Vercel
+
+on:
+  schedule:
+    # Ejecuta todos los lunes a las 12:00 UTC (09:00 ART)
+    - cron: '0 12 * * 1'
+  workflow_dispatch:
+
+concurrency:
+  group: weekly-redeploy
+  cancel-in-progress: true
+
+jobs:
+  trigger-redeploy:
+    name: Trigger Vercel Deploy Hook
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send POST request to Vercel Deploy Hook
+        env:
+          DEPLOY_HOOK_URL: ${{ secrets.VERCEL_DEPLOY_HOOK_URL }}
+        run: |
+          if [ -z "$DEPLOY_HOOK_URL" ]; then
+            echo "::error::El secreto VERCEL_DEPLOY_HOOK_URL no está configurado en el repositorio."
+            exit 1
+          fi
+
+          echo "Disparando redeploy en Vercel..."
+          response=$(curl -s -w "\n%{http_code}" -X POST "$DEPLOY_HOOK_URL")
+          http_code=$(echo "$response" | tail -n1)
+          body=$(echo "$response" | sed '$d')
+
+          echo "Código HTTP de respuesta: $http_code"
+          if [ "$http_code" -ge 200 ] && [ "$http_code" -lt 300 ]; then
+            echo "Redeploy iniciado correctamente en Vercel."
+          else
+            echo "::error::Falló la solicitud a Vercel con estado $http_code: $body"
+            exit 1
+          fi
