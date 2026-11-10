@@ -2,7 +2,7 @@ export type TechCategory =
   | 'Frontend'
   | 'Backend'
   | 'Bases de datos'
-  | 'Herramientas/DevOps'
+  | 'Herramientas y DevOps'
   | 'IA y agentes';
 
 export interface TechItem {
@@ -10,7 +10,9 @@ export interface TechItem {
   name: string;
   category: TechCategory;
   brandColor: string;
-  role: string;
+  role?: string;
+  featured?: boolean;
+  mono?: boolean;
   aliases: string[];
   svgPaths: {
     viewBox: string;

@@ -1,10 +1,13 @@
-import { useState } from 'react';
+import { motion, useReducedMotion } from 'motion/react';
 import { CURATED_TECH, TECH_CATEGORIES } from '../data/tech';
-import type { ProjectItem, TechCategory, TechItem } from '../lib/types';
+import { computeLanguageSummary } from '../lib/languages';
+import type { ProjectItem, TechItem } from '../lib/types';
 
 interface TechStackProps {
   projects: ProjectItem[];
 }
+
+const EASE = [0.22, 1, 0.36, 1] as const;
 
 export function TechIcon({
   item,
@@ -25,41 +28,69 @@ export function TechIcon({
         <path
           key={idx}
           d={el.d}
-          fill={el.fill || item.brandColor}
+          fill={el.fill ?? (item.mono ? 'currentColor' : item.brandColor)}
         />
       ))}
     </svg>
   );
 }
 
+function LanguageSummary({ projects }: { projects: ProjectItem[] }) {
+  const { stats, totalBytes } = computeLanguageSummary(projects);
+  if (stats.length === 0) return null;
+
+  const top = stats.slice(0, 6);
+
+  return (
+    <div className="mt-10 border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-5">
+      <div className="flex flex-col justify-between gap-1 sm:flex-row sm:items-baseline">
+        <h3 className="font-display text-base font-semibold text-[var(--text-primary)]">
+          Lenguajes más usados
+        </h3>
+        <p className="font-mono text-xs text-[var(--text-muted)]">
+          Calculado desde projects.json · {(totalBytes / 1024).toFixed(0)} KB
+        </p>
+      </div>
+
+      <ul className="mt-4 grid grid-cols-1 gap-x-8 gap-y-3 sm:grid-cols-2 lg:grid-cols-3">
+        {top.map((stat) => (
+          <li key={stat.name}>
+            <div className="flex items-center justify-between font-mono text-xs">
+              <span className="font-semibold text-[var(--text-primary)]">
+                {stat.name}
+              </span>
+              <span className="text-[var(--accent-primary)]">
+                {stat.percentage}%
+              </span>
+            </div>
+            <div
+              className="mt-1.5 h-1 w-full bg-[var(--bg-elevated)]"
+              role="presentation"
+            >
+              <div
+                className="h-full bg-[var(--accent-primary)]"
+                style={{ width: `${Math.max(stat.percentage, 3)}%` }}
+              />
+            </div>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 export function TechStack({ projects }: TechStackProps) {
-  const [selectedCategory, setSelectedCategory] = useState<
-    TechCategory | 'TODAS'
-  >('TODAS');
+  const reduceMotion = useReducedMotion();
 
-  // Compute automatic language summary from projects.json
-  const languageMap = new Map<string, number>();
-  let totalBytes = 0;
-
-  for (const project of projects) {
-    for (const lang of project.languages) {
-      totalBytes += lang.bytes;
-      languageMap.set(lang.name, (languageMap.get(lang.name) || 0) + lang.bytes);
-    }
-  }
-
-  const languageStats = Array.from(languageMap.entries())
-    .map(([name, bytes]) => ({
-      name,
-      bytes,
-      percentage:
-        totalBytes > 0 ? Number(((bytes / totalBytes) * 100).toFixed(1)) : 0,
-    }))
-    .sort((a, b) => b.bytes - a.bytes)
-    .filter((item) => item.percentage >= 0.1);
-
-  const visibleCategories =
-    selectedCategory === 'TODAS' ? TECH_CATEGORIES : [selectedCategory];
+  const reveal = (delay = 0) =>
+    reduceMotion
+      ? {}
+      : {
+          initial: { opacity: 0, y: 12 },
+          whileInView: { opacity: 1, y: 0 },
+          viewport: { once: true, margin: '-60px' },
+          transition: { duration: 0.5, delay, ease: EASE },
+        };
 
   return (
     <section
@@ -68,150 +99,95 @@ export function TechStack({ projects }: TechStackProps) {
       className="section-screen"
     >
       <div className="wrap">
-        <div className="flex flex-col justify-between gap-6 border-b border-[var(--border-subtle)] pb-8 lg:flex-row lg:items-end">
-          <div>
-            <div className="font-mono text-xs font-semibold uppercase tracking-wider text-[var(--accent-primary)]">
-              02 // TECNOLOGÍAS Y ENTORNOS
-            </div>
-            <h2
-              id="tech-heading"
-              className="mt-2 font-display text-2xl font-bold tracking-tight text-[var(--text-primary)] sm:text-3xl"
-            >
-              Stack técnico curado por capa
-            </h2>
+        <div className="border-b border-[var(--border-subtle)] pb-8">
+          <div className="font-mono text-xs font-semibold uppercase tracking-wider text-[var(--accent-primary)]">
+            02 // Tecnologías
           </div>
-
-          {/* Filter controls */}
-          <div
-            role="group"
-            aria-label="Filtrar tecnologías por categoría"
-            className="flex flex-wrap gap-2"
+          <h2
+            id="tech-heading"
+            className="mt-2 font-display text-2xl font-bold tracking-tight text-[var(--text-primary)] sm:text-3xl"
           >
-            <button
-              type="button"
-              onClick={() => setSelectedCategory('TODAS')}
-              aria-pressed={selectedCategory === 'TODAS'}
-              className={`border px-3 py-1.5 font-mono text-xs transition-colors cursor-pointer ${
-                selectedCategory === 'TODAS'
-                  ? 'border-[var(--accent-primary)] bg-[var(--accent-primary-subtle)] text-[var(--text-primary)] font-semibold'
-                  : 'border-[var(--border-subtle)] bg-[var(--bg-surface)] text-[var(--text-secondary)] hover:border-[var(--border-strong)]'
-              }`}
-            >
-              TODAS ({CURATED_TECH.length})
-            </button>
-            {TECH_CATEGORIES.map((category) => {
-              const count = CURATED_TECH.filter(
-                (t) => t.category === category
-              ).length;
-              const active = selectedCategory === category;
-              return (
-                <button
-                  key={category}
-                  type="button"
-                  onClick={() => setSelectedCategory(category)}
-                  aria-pressed={active}
-                  className={`border px-3 py-1.5 font-mono text-xs transition-colors cursor-pointer ${
-                    active
-                      ? 'border-[var(--accent-primary)] bg-[var(--accent-primary-subtle)] text-[var(--text-primary)] font-semibold'
-                      : 'border-[var(--border-subtle)] bg-[var(--bg-surface)] text-[var(--text-secondary)] hover:border-[var(--border-strong)]'
-                  }`}
-                >
-                  {category} ({count})
-                </button>
-              );
-            })}
-          </div>
+            Con qué trabajo
+          </h2>
+          <p className="mt-3 max-w-2xl text-sm leading-relaxed text-[var(--text-secondary)]">
+            Mi foco está en el backend con Java y Spring Boot. Lo destacado es
+            lo que uso a diario; el resto es el entorno que lo rodea.
+          </p>
         </div>
 
-        {/* Automatic GitHub language telemetry summary */}
-        <div className="mt-8 border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-5">
-          <div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-center">
-            <span className="font-mono text-xs font-semibold text-[var(--text-primary)]">
-              TELEMETRÍA AUTOMÁTICA DE LENGUAJES (CALCULADA DESDE PROJECTS.JSON)
-            </span>
-            <span className="font-mono text-xs text-[var(--text-muted)]">
-              {(totalBytes / 1024).toFixed(0)} KB totales auditados vía GitHub
-              API
-            </span>
-          </div>
-
-          <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-            {languageStats.slice(0, 6).map((stat) => (
-              <div
-                key={stat.name}
-                className="border border-[var(--border-subtle)] bg-[var(--bg-primary)] p-3"
-              >
-                <div className="flex items-center justify-between font-mono text-xs">
-                  <span className="font-semibold text-[var(--text-primary)]">
-                    {stat.name}
-                  </span>
-                  <span className="text-[var(--accent-primary)]">
-                    {stat.percentage}%
-                  </span>
-                </div>
-                <div className="mt-2 h-1.5 w-full bg-[var(--bg-elevated)]">
-                  <div
-                    className="h-full bg-[var(--accent-primary)]"
-                    style={{ width: `${Math.max(stat.percentage, 4)}%` }}
-                  />
-                </div>
-                <div className="mt-1.5 font-mono text-[11px] text-[var(--text-muted)]">
-                  {(stat.bytes / 1024).toFixed(1)} KB
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Curated categories */}
-        <div className="mt-8 space-y-8">
-          {visibleCategories.map((category, catIdx) => {
+        <div className="mt-2">
+          {TECH_CATEGORIES.map((category, catIdx) => {
             const items = CURATED_TECH.filter((t) => t.category === category);
+            const featured = items.filter((t) => t.featured);
+            const rest = items.filter((t) => !t.featured);
+
             return (
-              <div
+              <motion.div
                 key={category}
-                className="grid grid-cols-1 gap-4 border-b border-[var(--border-subtle)] pb-8 last:border-b-0 lg:grid-cols-12 lg:gap-8"
+                {...reveal()}
+                className="grid grid-cols-1 gap-5 border-b border-[var(--border-subtle)] py-8 last:border-b-0 lg:grid-cols-12 lg:gap-8"
               >
                 <div className="lg:col-span-3">
                   <div className="font-mono text-xs text-[var(--accent-primary)]">
-                    CAPA 0{catIdx + 1}
+                    {String(catIdx + 1).padStart(2, '0')}
                   </div>
                   <h3 className="mt-1 font-display text-lg font-semibold text-[var(--text-primary)]">
                     {category}
                   </h3>
+                  <p className="mt-1 font-mono text-xs text-[var(--text-muted)]">
+                    {items.length} {items.length === 1 ? 'herramienta' : 'herramientas'}
+                  </p>
                 </div>
 
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:col-span-9">
-                  {items.map((tech) => (
-                    <div
-                      key={tech.id}
-                      className="tech-panel tech-panel-interactive flex items-start gap-3.5 p-4"
-                    >
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center border border-[var(--border-subtle)] bg-[var(--bg-primary)]">
-                        <TechIcon item={tech} size={22} />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center justify-between gap-2">
-                          <h4 className="font-display text-sm font-semibold text-[var(--text-primary)]">
-                            {tech.name}
-                          </h4>
+                <div className="space-y-3 lg:col-span-9">
+                  {featured.length > 0 && (
+                    <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                      {featured.map((tech) => (
+                        <li
+                          key={tech.id}
+                          className="tech-panel tech-panel-interactive flex items-center gap-4 p-4"
+                        >
                           <span
-                            className="h-2 w-2 shrink-0"
-                            style={{ backgroundColor: tech.brandColor }}
-                            aria-hidden="true"
-                          />
-                        </div>
-                        <p className="mt-1 text-xs leading-relaxed text-[var(--text-secondary)]">
-                          {tech.role}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
+                            className="flex h-12 w-12 shrink-0 items-center justify-center border border-[var(--border-subtle)] bg-[var(--bg-primary)] text-[var(--text-primary)]"
+                            style={{ borderLeftColor: tech.brandColor, borderLeftWidth: 3 }}
+                          >
+                            <TechIcon item={tech} size={26} />
+                          </span>
+                          <span className="min-w-0">
+                            <span className="block font-display text-base font-semibold text-[var(--text-primary)]">
+                              {tech.name}
+                            </span>
+                            {tech.role && (
+                              <span className="mt-0.5 block text-xs leading-relaxed text-[var(--text-secondary)]">
+                                {tech.role}
+                              </span>
+                            )}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+
+                  {rest.length > 0 && (
+                    <ul className="flex flex-wrap gap-2">
+                      {rest.map((tech) => (
+                        <li
+                          key={tech.id}
+                          className="tech-panel tech-panel-interactive inline-flex items-center gap-2 px-3 py-2 text-[var(--text-primary)]"
+                        >
+                          <TechIcon item={tech} size={16} />
+                          <span className="font-mono text-xs">{tech.name}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </div>
-              </div>
+              </motion.div>
             );
           })}
         </div>
+
+        <LanguageSummary projects={projects} />
       </div>
     </section>
   );
