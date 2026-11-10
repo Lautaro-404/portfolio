@@ -112,6 +112,7 @@ export const CURATED_TECH: TechItem[] = [
   }),
   build({ id: 'typescript', name: 'TypeScript', category: 'Frontend', icon: siTypescript, aliases: ['typescript', 'ts'] }),
   build({ id: 'javascript', name: 'JavaScript', category: 'Frontend', icon: siJavascript, aliases: ['javascript', 'js'] }),
+  build({ id: 'tailwindcss', name: 'Tailwind CSS', category: 'Frontend', icon: siTailwindcss, aliases: ['tailwind', 'tailwindcss', 'css'] }),
 
   // Backend
   build({
@@ -200,7 +201,6 @@ export const CURATED_TECH: TechItem[] = [
  * only used to render badges on project cards from GitHub topics/languages.
  */
 const PROJECT_ONLY_TECH: TechItem[] = [
-  build({ id: 'tailwindcss', name: 'Tailwind CSS', category: 'Frontend', icon: siTailwindcss, aliases: ['tailwind', 'tailwindcss', 'css'] }),
   build({ id: 'html5', name: 'HTML5', category: 'Frontend', icon: siHtml5, aliases: ['html', 'html5'] }),
 ];
 
