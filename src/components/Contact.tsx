@@ -193,8 +193,8 @@ export function Contact() {
           </h2>
           <p className="mt-4 text-base leading-relaxed text-[var(--text-secondary)]">
             Estoy disponible para sumarme a equipos de desarrollo Full Stack,
-            proyectos freelance o colaboraciones técnicas desde San Rafael,
-            Mendoza (modalidad remota o híbrida).
+            proyectos freelance o colaboraciones técnicas desde Neuquén Capital,
+            Argentina (modalidad remota o híbrida).
           </p>
 
           <div className="mt-8 space-y-3 font-mono text-xs">

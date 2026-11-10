@@ -98,7 +98,7 @@ export function Hero() {
             <div>
               <dt className="text-[var(--text-muted)]">UBICACIÓN</dt>
               <dd className="mt-1 text-[var(--text-primary)]">
-                San Rafael, Mendoza, Argentina
+                Neuquén Capital, Argentina
               </dd>
             </div>
           </dl>

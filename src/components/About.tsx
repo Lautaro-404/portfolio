@@ -9,7 +9,7 @@ const FACTS = [
   },
   {
     label: 'UBICACIÓN',
-    value: 'San Rafael, Mendoza',
+    value: 'Neuquén Capital',
     detail: 'Argentina',
   },
   {
@@ -44,10 +44,10 @@ export function About() {
       <div className="grid grid-cols-1 gap-10 lg:grid-cols-12 lg:gap-14">
         <div className="space-y-5 text-base leading-relaxed text-[var(--text-secondary)] sm:text-lg lg:col-span-7">
           <p>
-            Soy Lautaro, desarrollador Full Stack de San Rafael, Mendoza.
-            Terminé de cursar la Tecnicatura en Programación en la UTN
-            Facultad Regional San Rafael y el título está en trámite. Hoy estoy
-            abierto a un trabajo, una pasantía o proyectos freelance.
+            Soy Lautaro, desarrollador Full Stack viviendo en Neuquén Capital,
+            Argentina. Terminé de cursar la Tecnicatura en Programación en la
+            UTN Facultad Regional San Rafael y el título está en trámite. Hoy
+            estoy abierto a un trabajo, una pasantía o proyectos freelance.
           </p>
           <p>
             Me gusta construir de punta a punta: APIs y backend, aplicaciones
