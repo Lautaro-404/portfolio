@@ -9,7 +9,7 @@ const OVERRIDES_PATH = resolve(ROOT_DIR, 'src/data/projects.overrides.json');
 const OUTPUT_PATH = resolve(ROOT_DIR, 'src/data/projects.json');
 
 const GITHUB_USER = process.env.GITHUB_USER || 'Lautaro-404';
-const PORTFOLIO_REPO_NAMES = new Set(['portfolio', 'portafolio-web']);
+const PORTFOLIO_REPO_NAMES = new Set(['portfolio', 'portafolio-web', GITHUB_USER.toLowerCase()]);
 
 function runGhJson(args) {
   const stdout = execFileSync('gh', args, {
