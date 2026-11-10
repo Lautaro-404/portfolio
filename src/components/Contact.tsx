@@ -1,4 +1,13 @@
-import { type FormEvent, useState } from 'react';
+import { type FormEvent, useRef, useState } from 'react';
+import {
+  CONTACT_LIMITS,
+  type ContactFieldErrors,
+  type ContactFieldName,
+  firstInvalidContactField,
+  hasContactErrors,
+  validateContact,
+  validateContactField,
+} from '../lib/contactValidation';
 import type {
   ContactRequestPayload,
   ContactResponsePayload,
@@ -11,9 +20,60 @@ export function Contact() {
   const [email, setEmail] = useState('');
   const [message, setMessage] = useState('');
   const [website, setWebsite] = useState('');
+  const [errors, setErrors] = useState<ContactFieldErrors>({});
+  const [touched, setTouched] = useState<
+    Partial<Record<ContactFieldName, boolean>>
+  >({});
   const [status, setStatus] = useState<SubmitStatus>('idle');
   const [feedback, setFeedback] = useState('');
   const [copiedEmail, setCopiedEmail] = useState(false);
+
+  const nameInputRef = useRef<HTMLInputElement>(null);
+  const emailInputRef = useRef<HTMLInputElement>(null);
+  const messageInputRef = useRef<HTMLTextAreaElement>(null);
+
+  const focusField = (field: ContactFieldName | null) => {
+    if (field === 'name') {
+      nameInputRef.current?.focus();
+    } else if (field === 'email') {
+      emailInputRef.current?.focus();
+    } else if (field === 'message') {
+      messageInputRef.current?.focus();
+    }
+  };
+
+  const handleFieldChange = (field: ContactFieldName, value: string) => {
+    if (field === 'name') setName(value);
+    if (field === 'email') setEmail(value);
+    if (field === 'message') setMessage(value);
+
+    if (touched[field] || errors[field]) {
+      const fieldError = validateContactField(field, value);
+      setErrors((prev) => {
+        const next = { ...prev };
+        if (fieldError) {
+          next[field] = fieldError;
+        } else {
+          delete next[field];
+        }
+        return next;
+      });
+    }
+  };
+
+  const handleFieldBlur = (field: ContactFieldName, value: string) => {
+    setTouched((prev) => ({ ...prev, [field]: true }));
+    const fieldError = validateContactField(field, value);
+    setErrors((prev) => {
+      const next = { ...prev };
+      if (fieldError) {
+        next[field] = fieldError;
+      } else {
+        delete next[field];
+      }
+      return next;
+    });
+  };
 
   const handleCopyEmail = async () => {
     try {
@@ -27,6 +87,20 @@ export function Contact() {
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    setTouched({ name: true, email: true, message: true });
+    const validationErrors = validateContact({ name, email, message });
+    setErrors(validationErrors);
+
+    if (hasContactErrors(validationErrors)) {
+      if (status !== 'idle') {
+        setStatus('idle');
+        setFeedback('');
+      }
+      focusField(firstInvalidContactField(validationErrors));
+      return;
+    }
+
     setStatus('submitting');
     setFeedback('');
 
@@ -63,6 +137,8 @@ export function Contact() {
       setEmail('');
       setMessage('');
       setWebsite('');
+      setErrors({});
+      setTouched({});
     } catch {
       setStatus('error');
       setFeedback(
@@ -70,6 +146,13 @@ export function Contact() {
       );
     }
   };
+
+  const getFieldBorderClass = (field: ContactFieldName) =>
+    errors[field]
+      ? 'border-[var(--danger)] focus:border-[var(--danger)]'
+      : 'border-[var(--border-strong)] focus:border-[var(--accent-primary)]';
+
+  const trimmedMessageLength = message.trim().length;
 
   return (
     <section
@@ -110,6 +193,7 @@ export function Contact() {
                 <button
                   type="button"
                   onClick={handleCopyEmail}
+                  aria-label="Copiar dirección de correo electrónico ponzinalautaro6@gmail.com"
                   className="border border-[var(--border-strong)] bg-[var(--bg-primary)] px-2.5 py-1 text-[11px] text-[var(--text-secondary)] transition-colors hover:border-[var(--accent-primary)] hover:text-[var(--text-primary)] cursor-pointer"
                 >
                   {copiedEmail ? 'COPIADO' : 'COPIAR'}
@@ -156,7 +240,7 @@ export function Contact() {
           <form
             onSubmit={handleSubmit}
             noValidate
-            className="tech-panel p-6 sm:p-8"
+            className="tech-panel relative p-6 sm:p-8"
           >
             <div className="mb-6 flex items-center justify-between border-b border-[var(--border-subtle)] pb-3 font-mono text-xs">
               <span className="font-semibold text-[var(--accent-primary)]">
@@ -165,12 +249,11 @@ export function Contact() {
               <span className="text-[var(--text-muted)]">RESEND // TLS</span>
             </div>
 
-            {/* Honeypot anti-spam field (hidden from real users) */}
+            {/* Honeypot anti-spam field positioned off-screen and excluded from assistive tech */}
             <div
-              className="hidden"
+              className="pointer-events-none absolute -left-[9999px] top-auto h-px w-px overflow-hidden opacity-0"
               aria-hidden="true"
             >
-              <label htmlFor="contact-website">Sitio web</label>
               <input
                 id="contact-website"
                 name="website"
@@ -188,21 +271,37 @@ export function Contact() {
                   htmlFor="contact-name"
                   className="block font-mono text-xs font-medium uppercase text-[var(--text-secondary)]"
                 >
-                  Nombre completo <span className="text-[var(--accent-primary)]">*</span>
+                  Nombre completo{' '}
+                  <span className="text-[var(--accent-primary)]" aria-hidden="true">
+                    *
+                  </span>
                 </label>
                 <input
+                  ref={nameInputRef}
                   id="contact-name"
                   name="name"
                   type="text"
                   required
-                  minLength={2}
-                  maxLength={80}
+                  minLength={CONTACT_LIMITS.name.min}
+                  maxLength={CONTACT_LIMITS.name.max}
                   autoComplete="name"
                   value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  onChange={(e) => handleFieldChange('name', e.target.value)}
+                  onBlur={(e) => handleFieldBlur('name', e.target.value)}
+                  aria-invalid={Boolean(errors.name)}
+                  aria-describedby={errors.name ? 'contact-name-error' : undefined}
                   placeholder="Tu nombre o empresa"
-                  className="mt-2 w-full border border-[var(--border-strong)] bg-[var(--bg-primary)] px-3.5 py-2.5 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:border-[var(--accent-primary)]"
+                  className={`mt-2 w-full border bg-[var(--bg-primary)] px-3.5 py-2.5 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] transition-colors ${getFieldBorderClass('name')}`}
                 />
+                {errors.name && (
+                  <p
+                    id="contact-name-error"
+                    role="alert"
+                    className="mt-1.5 font-mono text-xs text-[var(--danger)]"
+                  >
+                    {errors.name}
+                  </p>
+                )}
               </div>
 
               <div>
@@ -210,47 +309,97 @@ export function Contact() {
                   htmlFor="contact-email"
                   className="block font-mono text-xs font-medium uppercase text-[var(--text-secondary)]"
                 >
-                  Correo electrónico <span className="text-[var(--accent-primary)]">*</span>
+                  Correo electrónico{' '}
+                  <span className="text-[var(--accent-primary)]" aria-hidden="true">
+                    *
+                  </span>
                 </label>
                 <input
+                  ref={emailInputRef}
                   id="contact-email"
                   name="email"
                   type="email"
                   required
-                  maxLength={120}
+                  maxLength={CONTACT_LIMITS.email.max}
                   autoComplete="email"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => handleFieldChange('email', e.target.value)}
+                  onBlur={(e) => handleFieldBlur('email', e.target.value)}
+                  aria-invalid={Boolean(errors.email)}
+                  aria-describedby={
+                    errors.email ? 'contact-email-error' : undefined
+                  }
                   placeholder="nombre@empresa.com"
-                  className="mt-2 w-full border border-[var(--border-strong)] bg-[var(--bg-primary)] px-3.5 py-2.5 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:border-[var(--accent-primary)]"
+                  className={`mt-2 w-full border bg-[var(--bg-primary)] px-3.5 py-2.5 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] transition-colors ${getFieldBorderClass('email')}`}
                 />
+                {errors.email && (
+                  <p
+                    id="contact-email-error"
+                    role="alert"
+                    className="mt-1.5 font-mono text-xs text-[var(--danger)]"
+                  >
+                    {errors.email}
+                  </p>
+                )}
               </div>
 
               <div>
-                <label
-                  htmlFor="contact-message"
-                  className="block font-mono text-xs font-medium uppercase text-[var(--text-secondary)]"
-                >
-                  Mensaje <span className="text-[var(--accent-primary)]">*</span>
-                </label>
+                <div className="flex items-baseline justify-between gap-2">
+                  <label
+                    htmlFor="contact-message"
+                    className="block font-mono text-xs font-medium uppercase text-[var(--text-secondary)]"
+                  >
+                    Mensaje{' '}
+                    <span
+                      className="text-[var(--accent-primary)]"
+                      aria-hidden="true"
+                    >
+                      *
+                    </span>
+                  </label>
+                  <span
+                    id="contact-message-counter"
+                    className="font-mono text-[11px] text-[var(--text-muted)]"
+                  >
+                    {trimmedMessageLength} / {CONTACT_LIMITS.message.max}
+                  </span>
+                </div>
                 <textarea
+                  ref={messageInputRef}
                   id="contact-message"
                   name="message"
                   required
-                  minLength={10}
-                  maxLength={2000}
+                  minLength={CONTACT_LIMITS.message.min}
+                  maxLength={CONTACT_LIMITS.message.max}
                   rows={5}
                   value={message}
-                  onChange={(e) => setMessage(e.target.value)}
+                  onChange={(e) => handleFieldChange('message', e.target.value)}
+                  onBlur={(e) => handleFieldBlur('message', e.target.value)}
+                  aria-invalid={Boolean(errors.message)}
+                  aria-describedby={
+                    errors.message
+                      ? 'contact-message-error contact-message-counter'
+                      : 'contact-message-counter'
+                  }
                   placeholder="Contame sobre el proyecto, posición o consulta técnica..."
-                  className="mt-2 w-full resize-y border border-[var(--border-strong)] bg-[var(--bg-primary)] px-3.5 py-2.5 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:border-[var(--accent-primary)]"
+                  className={`mt-2 w-full resize-y border bg-[var(--bg-primary)] px-3.5 py-2.5 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] transition-colors ${getFieldBorderClass('message')}`}
                 />
+                {errors.message && (
+                  <p
+                    id="contact-message-error"
+                    role="alert"
+                    className="mt-1.5 font-mono text-xs text-[var(--danger)]"
+                  >
+                    {errors.message}
+                  </p>
+                )}
               </div>
 
               <div className="pt-2">
                 <button
                   type="submit"
                   disabled={status === 'submitting'}
+                  aria-busy={status === 'submitting'}
                   className="btn-tech-primary w-full sm:w-auto disabled:opacity-60"
                 >
                   <span>
@@ -264,18 +413,40 @@ export function Contact() {
 
               <div
                 aria-live="polite"
+                aria-atomic="true"
                 role="status"
                 className="min-h-[1.5rem]"
               >
+                {status === 'submitting' && (
+                  <div className="border border-[var(--border-strong)] bg-[var(--bg-primary)] px-4 py-3 font-mono text-xs text-[var(--text-secondary)]">
+                    <span
+                      aria-hidden="true"
+                      className="mr-2 font-semibold text-[var(--accent-primary)]"
+                    >
+                      [PROCESANDO]
+                    </span>
+                    Enviando tu mensaje...
+                  </div>
+                )}
+
                 {status === 'success' && (
                   <div className="border border-[var(--accent-primary)] bg-[var(--accent-primary-subtle)] px-4 py-3 font-mono text-xs text-[var(--text-primary)]">
-                    [ESTADO 200 OK] {feedback}
+                    <span
+                      aria-hidden="true"
+                      className="mr-2 font-semibold text-[var(--accent-primary)]"
+                    >
+                      [ESTADO 200 OK]
+                    </span>
+                    {feedback}
                   </div>
                 )}
 
                 {status === 'error' && (
                   <div className="border border-[var(--danger)] bg-[var(--bg-primary)] px-4 py-3 font-mono text-xs text-[var(--danger)]">
-                    [ERROR DE VALIDACIÓN / ENVÍO] {feedback}
+                    <span aria-hidden="true" className="mr-2 font-semibold">
+                      [ERROR DE ENVÍO]
+                    </span>
+                    {feedback}
                   </div>
                 )}
               </div>

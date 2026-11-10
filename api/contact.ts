@@ -22,7 +22,7 @@ const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000; // 10 minutes
 const MAX_REQUESTS_PER_WINDOW = 3;
 const ipHits = new Map<string, { count: number; resetAt: number }>();
 
-const EMAIL_REGEX = /^[^\s@<>()[\]\\.,;:@"]+(\.[^\s@<>()[\]\\.,;:@"]+)*@[^\s@<>()[\]\\.,;:@"]+\.[^\s@<>()[\]\\.,;:@"]{2,}$/;
+const EMAIL_REGEX = /^[^\s@<>()[\]\\.,;:@"]+(\.[^\s@<>()[\]\\.,;:@"]+)*@[^\s@<>()[\]\\.,;:@"]+(\.[^\s@<>()[\]\\.,;:@"]+)*\.[^\s@<>()[\]\\.,;:@"]{2,}$/;
 
 function stripControlChars(input: string, preserveNewlines: boolean): string {
   let out = '';

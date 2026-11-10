@@ -175,6 +175,22 @@ describe('POST /api/contact', () => {
       resShortMsg
     );
     assert.equal(resShortMsg.statusCode, 400);
+
+    // 4. Multi-level domain (.com.ar) is accepted
+    const resArEmail = createMockRes();
+    await handler(
+      createMockReq({
+        ip: '198.51.100.99',
+        headers: { origin: 'https://lautaroponzina.vercel.app' },
+        body: {
+          name: 'Maria Gomez',
+          email: 'maria.gomez@empresa.com.ar',
+          message: 'Mensaje valido desde un dominio argentino .com.ar.',
+        },
+      }),
+      resArEmail
+    );
+    assert.equal(resArEmail.statusCode, 200);
   });
 
   it('silently drops spam when honeypot field website is filled without calling Resend', async () => {

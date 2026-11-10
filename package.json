@@ -10,6 +10,7 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "test:api": "node --experimental-strip-types --test api/contact.test.ts",
+    "test:client": "node --experimental-strip-types --test src/lib/contactValidation.test.ts",
     "preview": "vite preview"
   },
   "dependencies": {
