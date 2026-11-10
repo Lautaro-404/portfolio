@@ -6,6 +6,11 @@ import {
   validateContact,
   validateContactField,
 } from './contactValidation.ts';
+import {
+  computeLanguageSummary,
+  isProject,
+  parseProjects,
+} from './languages.ts';
 
 describe('validateContact (client-side validation matching /api/contact)', () => {
   it('returns errors for all three fields when empty or whitespace-only', () => {
@@ -110,5 +115,46 @@ describe('validateContact (client-side validation matching /api/contact)', () =>
       message: 'corto',
     });
     assert.equal(firstInvalidContactField(msgOnlyError), 'message');
+  });
+});
+
+describe('parseProjects and computeLanguageSummary', () => {
+  it('filters out malformed project items and entries with invalid language objects', () => {
+    const raw: unknown = [
+      {
+        name: 'ClinAppMobile',
+        title: 'ClinApp Mobile',
+        description: 'Plataforma de delivery',
+        html_url: 'https://github.com/Lautaro-404/ClinAppMobile',
+        homepage: 'https://clinapp-mobile.vercel.app',
+        topics: ['flutter'],
+        languages: [{ name: 'Dart', bytes: 1000, percentage: 100 }],
+        stargazers_count: 0,
+        pushed_at: '2026-11-03T05:09:12Z',
+        featured: true,
+        order: 1,
+      },
+      {
+        name: 'BrokenProject',
+        title: 'Broken',
+        description: 'Missing languages array items validation',
+        html_url: 'https://github.com/Lautaro-404/Broken',
+        topics: ['ts'],
+        languages: [{ name: 123, bytes: 'invalid' }],
+      },
+      null,
+      'not-an-object',
+    ];
+
+    assert.equal(isProject((raw as unknown[])[0]), true);
+    assert.equal(isProject((raw as unknown[])[1]), false);
+
+    const valid = parseProjects(raw);
+    assert.equal(valid.length, 1);
+    assert.equal(valid[0].name, 'ClinAppMobile');
+
+    const summary = computeLanguageSummary(valid);
+    assert.equal(summary.totalBytes, 1000);
+    assert.equal(summary.stats[0].name, 'Dart');
   });
 });

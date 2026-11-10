@@ -6,12 +6,11 @@ import { Hero } from '@/components/Hero';
 import { Projects } from '@/components/Projects';
 import { TechStack } from '@/components/TechStack';
 import projectsData from '@/data/projects.json';
+import { parseProjects } from '@/lib/languages';
 import { useTheme } from '@/lib/theme';
-import type { ProjectItem } from '@/lib/types';
 
-// Projects validates the raw data itself; TechStack only gets a safe array.
 const rawProjects: unknown = projectsData;
-const projects: ProjectItem[] = Array.isArray(rawProjects) ? (rawProjects as ProjectItem[]) : [];
+const projects = parseProjects(rawProjects);
 
 export function App() {
   const { theme, toggleTheme } = useTheme();

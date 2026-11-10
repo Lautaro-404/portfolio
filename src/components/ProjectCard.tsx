@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { getTechItemsForProject } from '../data/tech';
-import type { ProjectItem } from '../lib/types';
+import type { ProjectItem, TechItem } from '../lib/types';
 import { TechIcon } from './TechStack';
 import { Badge } from './ui/Badge';
 import { Button } from './ui/Button';
@@ -9,6 +9,8 @@ export type ProjectCardVariant = 'featured' | 'compact';
 
 interface ProjectCardProps {
   project: ProjectItem;
+  /** Precomputed tech items for this project; computed on demand if omitted. */
+  tech?: TechItem[];
   /** Zero-based position inside its group, used for the index label and layout rhythm. */
   index: number;
   variant?: ProjectCardVariant;
@@ -30,12 +32,14 @@ function padIndex(index: number): string {
 
 function TechBadges({
   project,
+  tech: providedTech,
   activeTechId,
 }: {
   project: ProjectItem;
+  tech?: TechItem[];
   activeTechId?: string | null;
 }) {
-  const tech = getTechItemsForProject(project.languages, project.topics);
+  const tech = providedTech ?? getTechItemsForProject(project.languages, project.topics);
 
   return (
     <ul className="flex flex-wrap gap-2" aria-label="Tecnologías del proyecto">
@@ -70,10 +74,17 @@ function ProjectLinks({ project, compact }: { project: ProjectItem; compact?: bo
           <span className="sr-only"> de {project.title} (se abre en una pestaña nueva)</span>
         </Button>
       )}
-      <Button href={project.html_url} variant="secondary" {...external} className={sizing}>
-        <span>{project.privateRepo ? 'Repositorio (privado)' : 'Ver código'}</span>
-        <span className="sr-only"> de {project.title} en GitHub (se abre en una pestaña nueva)</span>
-      </Button>
+      {project.privateRepo ? (
+        <Button href="#contacto" variant="secondary" className={sizing}>
+          <span>Código privado · Solicitar acceso</span>
+          <span className="sr-only"> al repositorio de {project.title}</span>
+        </Button>
+      ) : (
+        <Button href={project.html_url} variant="secondary" {...external} className={sizing}>
+          <span>Ver código</span>
+          <span className="sr-only"> de {project.title} en GitHub (se abre en una pestaña nueva)</span>
+        </Button>
+      )}
       {project.secondaryUrl && (
         <a
           href={project.secondaryUrl.url}
@@ -88,8 +99,16 @@ function ProjectLinks({ project, compact }: { project: ProjectItem; compact?: bo
   );
 }
 
-/** Lazy-loaded screenshot; falls back to the architecture schematic if it is missing or fails. */
-function ProjectShot({ project }: { project: ProjectItem }) {
+/** Lazy-loaded 16:9 screenshot; notifies caller if missing or failed so fallback can render. */
+function ProjectShot({
+  project,
+  className = '',
+  onError,
+}: {
+  project: ProjectItem;
+  className?: string;
+  onError?: () => void;
+}) {
   const [failed, setFailed] = useState(false);
   if (!project.screenshot || failed) return null;
 
@@ -98,16 +117,19 @@ function ProjectShot({ project }: { project: ProjectItem }) {
       src={project.screenshot}
       alt={`Captura de pantalla de ${project.title}`}
       width={1280}
-      height={800}
+      height={720}
       loading="lazy"
       decoding="async"
-      onError={() => setFailed(true)}
-      className="aspect-[16/10] w-full border border-[var(--border-subtle)] object-cover object-top"
+      onError={() => {
+        setFailed(true);
+        onError?.();
+      }}
+      className={`aspect-video w-full border border-[var(--border-subtle)] object-cover object-top ${className}`.trim()}
     />
   );
 }
 
-function FeaturedCard({ project, index, activeTechId }: ProjectCardProps) {
+function FeaturedCard({ project, tech, index, activeTechId }: ProjectCardProps) {
   const [shotFailed, setShotFailed] = useState(false);
   const hasShot = Boolean(project.screenshot) && !shotFailed;
   const isReversed = index % 2 === 1;
@@ -137,15 +159,10 @@ function FeaturedCard({ project, index, activeTechId }: ProjectCardProps) {
           </div>
 
           {hasShot ? (
-            <img
-              src={project.screenshot}
-              alt={`Captura de pantalla de ${project.title}`}
-              width={1280}
-              height={800}
-              loading="lazy"
-              decoding="async"
+            <ProjectShot
+              project={project}
+              className="my-auto"
               onError={() => setShotFailed(true)}
-              className="my-auto aspect-[16/10] w-full border border-[var(--border-subtle)] object-cover object-top"
             />
           ) : (
             <div className="flex flex-1 flex-col justify-center space-y-3 border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-4">
@@ -227,7 +244,7 @@ function FeaturedCard({ project, index, activeTechId }: ProjectCardProps) {
           )}
 
           <div className="mt-6">
-            <TechBadges project={project} activeTechId={activeTechId} />
+            <TechBadges project={project} tech={tech} activeTechId={activeTechId} />
           </div>
         </div>
 
@@ -239,7 +256,7 @@ function FeaturedCard({ project, index, activeTechId }: ProjectCardProps) {
   );
 }
 
-function CompactCard({ project, index, activeTechId }: ProjectCardProps) {
+function CompactCard({ project, tech, index, activeTechId }: ProjectCardProps) {
   return (
     <article
       id={`proyecto-${project.name}`}
@@ -268,7 +285,7 @@ function CompactCard({ project, index, activeTechId }: ProjectCardProps) {
       </div>
 
       <div className="flex flex-col gap-4 md:col-span-5">
-        <TechBadges project={project} activeTechId={activeTechId} />
+        <TechBadges project={project} tech={tech} activeTechId={activeTechId} />
         <ProjectLinks project={project} compact />
       </div>
     </article>

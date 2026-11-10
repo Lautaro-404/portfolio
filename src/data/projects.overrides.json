@@ -17,6 +17,7 @@
     },
     "featured": true,
     "order": 1,
+    "screenshot": "/screenshots/yokai-hardware-frontend.webp",
     "topics": [
       "react",
       "java",
@@ -38,8 +39,9 @@
     "architectureNote": "Cliente móvil multiplataforma conectado a Supabase (PostgreSQL + Auth + Realtime) con cálculo de totales y preferencias de pago delegados a Edge Functions seguras.",
     "homepage": "https://clinapp-mobile.vercel.app",
     "featured": true,
-    "privateRepo": true,
+    "privateRepo": false,
     "order": 2,
+    "screenshot": "/screenshots/ClinAppMobile.webp",
     "topics": [
       "flutter",
       "supabase",

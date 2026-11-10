@@ -1,4 +1,34 @@
-import type { ProjectItem } from './types';
+import type { LanguageBreakdown, ProjectItem } from './types.ts';
+
+function isLanguageBreakdown(value: unknown): value is LanguageBreakdown {
+  if (typeof value !== 'object' || value === null) return false;
+  const item = value as Record<string, unknown>;
+  return (
+    typeof item.name === 'string' &&
+    typeof item.bytes === 'number' &&
+    Number.isFinite(item.bytes) &&
+    typeof item.percentage === 'number'
+  );
+}
+
+export function isProject(value: unknown): value is ProjectItem {
+  if (typeof value !== 'object' || value === null) return false;
+  const p = value as Record<string, unknown>;
+  return (
+    typeof p.name === 'string' &&
+    typeof p.title === 'string' &&
+    typeof p.description === 'string' &&
+    typeof p.html_url === 'string' &&
+    Array.isArray(p.languages) &&
+    p.languages.every(isLanguageBreakdown) &&
+    Array.isArray(p.topics) &&
+    p.topics.every((t) => typeof t === 'string')
+  );
+}
+
+export function parseProjects(raw: unknown): ProjectItem[] {
+  return Array.isArray(raw) ? raw.filter(isProject) : [];
+}
 
 export interface LanguageStat {
   name: string;

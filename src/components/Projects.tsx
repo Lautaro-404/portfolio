@@ -1,5 +1,7 @@
 import { useMemo, useState, type ReactNode } from 'react';
+import { GITHUB_URL } from '../data/profile';
 import { getTechItemsForProject } from '../data/tech';
+import { isProject } from '../lib/languages';
 import type { ProjectItem, TechItem } from '../lib/types';
 import { ProjectCard } from './ProjectCard';
 import { TechIcon } from './TechStack';
@@ -7,24 +9,9 @@ import { Button } from './ui/Button';
 import { ErrorBoundary } from './ui/ErrorBoundary';
 import { Section } from './ui/Section';
 
-const GITHUB_PROFILE_URL = 'https://github.com/Lautaro-404';
-
 interface ProjectsProps {
   /** Raw data from projects.json; validated here so a bad build never breaks the page. */
   projects: unknown;
-}
-
-function isProject(value: unknown): value is ProjectItem {
-  if (typeof value !== 'object' || value === null) return false;
-  const p = value as Record<string, unknown>;
-  return (
-    typeof p.name === 'string' &&
-    typeof p.title === 'string' &&
-    typeof p.description === 'string' &&
-    typeof p.html_url === 'string' &&
-    Array.isArray(p.languages) &&
-    Array.isArray(p.topics)
-  );
 }
 
 /** Animated show/hide: collapses height and fades, and removes hidden content from tab order. */
@@ -91,7 +78,7 @@ function ProjectsEmpty() {
       </p>
       <div className="mt-6">
         <Button
-          href={GITHUB_PROFILE_URL}
+          href={GITHUB_URL}
           variant="secondary"
           target="_blank"
           rel="noopener noreferrer"
@@ -117,7 +104,7 @@ function ProjectsError({ onRetry }: { onRetry?: () => void }) {
       <div className="mt-6 flex flex-wrap gap-3">
         {onRetry && <Button onClick={onRetry}>Reintentar</Button>}
         <Button
-          href={GITHUB_PROFILE_URL}
+          href={GITHUB_URL}
           variant="secondary"
           target="_blank"
           rel="noopener noreferrer"
@@ -238,18 +225,26 @@ function ProjectsList({ projects }: { projects: ProjectItem[] }) {
       <div className="mt-8">
         {featured.length > 0 && (
           <Collapsible open={showGroup(featured)}>
-            {featured.map(({ project, techIds }, index) => (
-              <Collapsible key={project.name} open={matches(techIds)}>
-                <div className="pb-8">
-                  <ProjectCard
-                    project={project}
-                    index={index}
-                    variant="featured"
-                    activeTechId={activeTechId}
-                  />
-                </div>
-              </Collapsible>
-            ))}
+            {(() => {
+              let visibleIdx = 0;
+              return featured.map(({ project, tech, techIds }) => {
+                const isOpen = matches(techIds);
+                const cardIndex = isOpen ? visibleIdx++ : 0;
+                return (
+                  <Collapsible key={project.name} open={isOpen}>
+                    <div className="pb-8">
+                      <ProjectCard
+                        project={project}
+                        tech={tech}
+                        index={cardIndex}
+                        variant="featured"
+                        activeTechId={activeTechId}
+                      />
+                    </div>
+                  </Collapsible>
+                );
+              });
+            })()}
           </Collapsible>
         )}
 
@@ -260,18 +255,26 @@ function ProjectsList({ projects }: { projects: ProjectItem[] }) {
                 Otros proyectos
               </h3>
               <div className="border-x border-b border-[var(--border-subtle)] bg-[var(--bg-surface)]">
-                {others.map(({ project, techIds }, index) => (
-                  <Collapsible key={project.name} open={matches(techIds)}>
-                    <div className="border-t border-[var(--border-subtle)]">
-                      <ProjectCard
-                        project={project}
-                        index={featured.length + index}
-                        variant="compact"
-                        activeTechId={activeTechId}
-                      />
-                    </div>
-                  </Collapsible>
-                ))}
+                {(() => {
+                  let visibleIdx = featured.filter((e) => matches(e.techIds)).length;
+                  return others.map(({ project, tech, techIds }) => {
+                    const isOpen = matches(techIds);
+                    const cardIndex = isOpen ? visibleIdx++ : 0;
+                    return (
+                      <Collapsible key={project.name} open={isOpen}>
+                        <div className="border-t border-[var(--border-subtle)]">
+                          <ProjectCard
+                            project={project}
+                            tech={tech}
+                            index={cardIndex}
+                            variant="compact"
+                            activeTechId={activeTechId}
+                          />
+                        </div>
+                      </Collapsible>
+                    );
+                  });
+                })()}
               </div>
             </div>
           </Collapsible>

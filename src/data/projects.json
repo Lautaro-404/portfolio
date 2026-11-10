@@ -65,7 +65,8 @@
       "Frontend SPA en React + Vite desplegado en Vercel con rutas protegidas por rol (Cliente y Admin).",
       "API RESTful en Java + Spring Boot con autenticación JWT HMAC-SHA256 y documentación OpenAPI / Swagger activa en Render.",
       "Persistencia transaccional en PostgreSQL con migraciones DDL automáticas (Flyway V1-V9) y contenedor Docker multi-etapa."
-    ]
+    ],
+    "screenshot": "/screenshots/yokai-hardware-frontend.webp"
   },
   {
     "name": "ClinAppMobile",
@@ -132,12 +133,13 @@
     "stargazers_count": 0,
     "pushed_at": "2026-11-03T05:09:12Z",
     "featured": true,
-    "privateRepo": true,
+    "privateRepo": false,
     "order": 2,
     "highlights": [
       "Arquitectura Feature-First en Flutter + Riverpod con paneles diferenciados para Cliente, Comercio, Repartidor y Administrador.",
       "Checkout seguro mediante Edge Functions (quote_order y create_mp_preference) integradas con Mercado Pago.",
       "Seguimiento en tiempo real con Supabase Realtime a través de las 5 etapas operativas del pedido."
-    ]
+    ],
+    "screenshot": "/screenshots/ClinAppMobile.webp"
   }
 ]

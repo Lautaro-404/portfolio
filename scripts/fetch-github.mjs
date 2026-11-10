@@ -122,7 +122,7 @@ function main() {
       description:
         override.description ||
         repo.description ||
-        'Proyecto de ingenieria de software desarrollado por Lautaro Ponzina.',
+        'Proyecto de ingeniería de software desarrollado por Lautaro Ponzina.',
       architectureNote: override.architectureNote || undefined,
       html_url: repo.html_url,
       homepage:
