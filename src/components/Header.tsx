@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { ThemeMode } from '../lib/theme';
 
 interface HeaderProps {
@@ -18,6 +18,17 @@ export function Header({ theme, onToggleTheme }: HeaderProps) {
 
   const closeMenu = () => setMobileMenuOpen(false);
 
+  useEffect(() => {
+    if (!mobileMenuOpen) return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setMobileMenuOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [mobileMenuOpen]);
+
   return (
     <header
       className="sticky top-0 z-50 border-b border-[var(--border-subtle)] backdrop-blur-md"
@@ -27,7 +38,6 @@ export function Header({ theme, onToggleTheme }: HeaderProps) {
         <a
           href="#inicio"
           className="group inline-flex items-center gap-3 text-left no-underline"
-          aria-label="Lautaro Ponzina — Ir al inicio"
         >
           <span
             className="flex h-8 w-8 items-center justify-center border border-[var(--border-strong)] bg-[var(--bg-surface)] font-mono text-xs font-semibold tracking-tight text-[var(--accent-primary)] transition-colors group-hover:border-[var(--accent-primary)]"
@@ -39,9 +49,13 @@ export function Header({ theme, onToggleTheme }: HeaderProps) {
             <span className="font-display text-sm font-semibold tracking-tight text-[var(--text-primary)]">
               Lautaro Ponzina
             </span>
-            <span className="font-mono text-[11px] text-[var(--text-muted)]">
+            <span
+              className="font-mono text-[11px] text-[var(--text-muted)]"
+              aria-hidden="true"
+            >
               FULL STACK // UTN FRSR
             </span>
+            <span className="sr-only"> — Ir al inicio</span>
           </div>
         </a>
 
@@ -68,8 +82,8 @@ export function Header({ theme, onToggleTheme }: HeaderProps) {
             className="inline-flex h-9 items-center gap-2 border border-[var(--border-strong)] bg-[var(--bg-surface)] px-2.5 sm:px-3 font-mono text-xs whitespace-nowrap text-[var(--text-secondary)] transition-colors hover:border-[var(--accent-primary)] hover:text-[var(--text-primary)] cursor-pointer"
             aria-label={
               theme === 'dark'
-                ? 'Cambiar a modo claro'
-                : 'Cambiar a modo oscuro'
+                ? 'Modo oscuro. Cambiar a modo claro'
+                : 'Modo claro. Cambiar a modo oscuro'
             }
           >
             <span

@@ -17,7 +17,6 @@
     },
     "featured": true,
     "order": 1,
-    "screenshot": "/projects/yokai-hardware.webp",
     "topics": [
       "react",
       "java",
@@ -41,7 +40,6 @@
     "featured": true,
     "privateRepo": true,
     "order": 2,
-    "screenshot": "/projects/clinapp-mobile.webp",
     "topics": [
       "flutter",
       "supabase",

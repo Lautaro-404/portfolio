@@ -6,7 +6,7 @@ import { Container } from './ui/Container';
  * PORTRAIT: to replace the placeholder, drop the photo in `public/` (for example
  * `public/foto-perfil.webp`, portrait 4:5) and set the path below.
  */
-const PORTRAIT_SRC: string | null = '/foto-perfil.jpg';
+const PORTRAIT_SRC: string | null = '/foto-perfil.webp';
 
 const GITHUB_URL = 'https://github.com/Lautaro-404';
 const LINKEDIN_URL = 'https://www.linkedin.com/in/lautaro-ponzina-90878932a/';
@@ -121,13 +121,18 @@ export function Hero() {
             />
             <div className="relative aspect-[4/5] w-full overflow-hidden border border-[var(--border-strong)] bg-[var(--bg-surface)]">
               {PORTRAIT_SRC ? (
-                <img
-                  src={PORTRAIT_SRC}
-                  alt="Retrato de Lautaro Ponzina"
-                  width={640}
-                  height={800}
-                  className="h-full w-full object-cover"
-                />
+                <picture>
+                  <source srcSet="/foto-perfil.webp" type="image/webp" />
+                  <img
+                    src="/foto-perfil.jpg"
+                    alt="Retrato de Lautaro Ponzina"
+                    width={640}
+                    height={800}
+                    fetchPriority="high"
+                    decoding="async"
+                    className="h-full w-full object-cover"
+                  />
+                </picture>
               ) : (
                 <div
                   data-placeholder="portrait"

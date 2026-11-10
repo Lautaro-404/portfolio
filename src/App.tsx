@@ -25,7 +25,7 @@ export function App() {
         Saltar al contenido principal
       </a>
       <Header theme={theme} onToggleTheme={toggleTheme} />
-      <main id="contenido-principal" className="flex-1">
+      <main id="contenido-principal" tabIndex={-1} className="flex-1 focus:outline-none">
         <Hero />
         <About />
         <TechStack projects={projects} />
