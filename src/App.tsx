@@ -9,7 +9,9 @@ import projectsData from '@/data/projects.json';
 import { useTheme } from '@/lib/theme';
 import type { ProjectItem } from '@/lib/types';
 
-const projects = projectsData as ProjectItem[];
+// Projects validates the raw data itself; TechStack only gets a safe array.
+const rawProjects: unknown = projectsData;
+const projects: ProjectItem[] = Array.isArray(rawProjects) ? (rawProjects as ProjectItem[]) : [];
 
 export function App() {
   const { theme, toggleTheme } = useTheme();
@@ -27,7 +29,7 @@ export function App() {
         <Hero />
         <About />
         <TechStack projects={projects} />
-        <Projects projects={projects} />
+        <Projects projects={rawProjects} />
         <Contact />
       </main>
       <Footer />
