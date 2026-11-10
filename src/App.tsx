@@ -24,7 +24,7 @@ export function App() {
       </a>
       <Header theme={theme} onToggleTheme={toggleTheme} />
       <main id="contenido-principal" className="flex-1">
-        <Hero projects={projects} />
+        <Hero />
         <About />
         <TechStack projects={projects} />
         <Projects projects={projects} />
