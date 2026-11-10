@@ -5,7 +5,7 @@ const FACTS = [
   {
     label: 'FORMACIÓN',
     value: 'Tecnicatura en Programación',
-    detail: 'UTN FR San Rafael. Cursada hasta noviembre, título tras las prácticas',
+    detail: 'UTN FR San Rafael. Cursada terminada, título en trámite',
   },
   {
     label: 'UBICACIÓN',
@@ -45,9 +45,8 @@ export function About() {
         <div className="space-y-5 text-base leading-relaxed text-[var(--text-secondary)] sm:text-lg lg:col-span-7">
           <p>
             Soy Lautaro, desarrollador Full Stack de San Rafael, Mendoza.
-            Estoy terminando de cursar la Tecnicatura en Programación en la UTN
-            Facultad Regional San Rafael: la cursada cierra en noviembre y el
-            título llega después de las prácticas profesionales. Hoy estoy
+            Terminé de cursar la Tecnicatura en Programación en la UTN
+            Facultad Regional San Rafael y el título está en trámite. Hoy estoy
             abierto a un trabajo, una pasantía o proyectos freelance.
           </p>
           <p>
