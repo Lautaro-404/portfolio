@@ -1,13 +1,53 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
-import {
-  CONTACT_LIMITS,
-  EMAIL_REGEX,
-  escapeHtml,
-  sanitizeSingleLine,
-  sanitizeText,
-} from '../src/lib/contactValidation.ts';
 
-export { escapeHtml, sanitizeSingleLine, sanitizeText };
+export const CONTACT_LIMITS = {
+  name: { min: 2, max: 80 },
+  email: { min: 5, max: 120 },
+  message: { min: 10, max: 2000 },
+} as const;
+
+export const EMAIL_REGEX =
+  /^[^\s@<>()[\]\\.,;:@"]+(\.[^\s@<>()[\]\\.,;:@"]+)*@[^\s@<>()[\]\\.,;:@"]+(\.[^\s@<>()[\]\\.,;:@"]+)*\.[^\s@<>()[\]\\.,;:@"]{2,}$/;
+
+export function stripControlChars(
+  input: string,
+  preserveNewlines: boolean
+): string {
+  let out = '';
+  for (let i = 0; i < input.length; i++) {
+    const code = input.charCodeAt(i);
+    const isNewline = code === 10 || code === 13; // \n or \r
+    const isTab = code === 9; // \t
+    const isControl = (code >= 0 && code <= 31) || code === 127;
+    if (!isControl || isTab || (preserveNewlines && isNewline)) {
+      out += input[i];
+    }
+  }
+  return out;
+}
+
+export function escapeHtml(input: string): string {
+  return input
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+export function sanitizeSingleLine(input: string): string {
+  return stripControlChars(input, true)
+    .replace(/[\r\n]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+export function sanitizeText(input: string): string {
+  return stripControlChars(input, true)
+    .replace(/\r\n/g, '\n')
+    .replace(/\r/g, '\n')
+    .trim();
+}
 
 interface ContactPayload {
   name?: unknown;
