@@ -13,6 +13,7 @@ import {
   siLinux,
   siModelcontextprotocol,
   siMysql,
+  siNestjs,
   siNodedotjs,
   siOpencode,
   siOpenjdk,
@@ -130,6 +131,7 @@ export const CURATED_TECH: TechItem[] = [
     aliases: ['spring', 'spring-boot', 'springboot'],
   }),
   build({ id: 'nodejs', name: 'Node.js', category: 'Backend', icon: siNodedotjs, aliases: ['node', 'nodejs', 'serverless'] }),
+  build({ id: 'nestjs', name: 'Nest.js', category: 'Backend', icon: siNestjs, aliases: ['nest', 'nestjs', 'nest.js'] }),
   build({ id: 'express', name: 'Express.js', category: 'Backend', icon: siExpress, aliases: ['express', 'expressjs'] }),
   build({ id: 'python', name: 'Python', category: 'Backend', icon: siPython, aliases: ['python', 'py'] }),
 
@@ -185,6 +187,7 @@ export const CURATED_TECH: TechItem[] = [
     aliases: ['mcp', 'model-context-protocol'],
   }),
   build({ id: 'claude-code', name: 'Claude Code CLI', category: 'IA y agentes', icon: siClaude, aliases: ['claude', 'claude-code'] }),
+  build({ id: 'codex', name: 'Codex', category: 'IA y agentes', brandColor: '#10A37F', aliases: ['codex', 'openai-codex'] }),
   build({ id: 'opencode', name: 'OpenCode', category: 'IA y agentes', icon: siOpencode, aliases: ['opencode'] }),
   build({ id: 'antigravity', name: 'Antigravity CLI', category: 'IA y agentes', brandColor: '#4285F4', aliases: ['antigravity', 'agy'] }),
   build({ id: 'herdr', name: 'Herdr', category: 'IA y agentes', brandColor: '#34B38A', aliases: ['herdr'] }),
