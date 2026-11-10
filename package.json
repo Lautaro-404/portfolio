@@ -9,6 +9,7 @@
     "prebuild": "npm run fetch:github",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
+    "test:api": "node --experimental-strip-types --test api/contact.test.ts",
     "preview": "vite preview"
   },
   "dependencies": {

@@ -7,13 +7,13 @@ interface ContactPayload {
   website?: unknown;
 }
 
-interface VercelRequest extends IncomingMessage {
+export interface VercelRequest extends IncomingMessage {
   body?: unknown;
   headers: IncomingMessage['headers'];
   method?: string;
 }
 
-interface VercelResponse extends ServerResponse {
+export interface VercelResponse extends ServerResponse {
   status?: (code: number) => VercelResponse;
   json?: (data: unknown) => void;
 }
@@ -22,13 +22,95 @@ const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000; // 10 minutes
 const MAX_REQUESTS_PER_WINDOW = 3;
 const ipHits = new Map<string, { count: number; resetAt: number }>();
 
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+const EMAIL_REGEX = /^[^\s@<>()[\]\\.,;:@"]+(\.[^\s@<>()[\]\\.,;:@"]+)*@[^\s@<>()[\]\\.,;:@"]+\.[^\s@<>()[\]\\.,;:@"]{2,}$/;
+
+function stripControlChars(input: string, preserveNewlines: boolean): string {
+  let out = '';
+  for (let i = 0; i < input.length; i++) {
+    const code = input.charCodeAt(i);
+    const isNewline = code === 10 || code === 13; // \n or \r
+    const isTab = code === 9; // \t
+    const isControl = (code >= 0 && code <= 31) || code === 127;
+    if (!isControl || isTab || (preserveNewlines && isNewline)) {
+      out += input[i];
+    }
+  }
+  return out;
+}
+
+export function __resetRateLimitForTests(): void {
+  ipHits.clear();
+}
+
+export function escapeHtml(input: string): string {
+  return input
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+export function sanitizeSingleLine(input: string): string {
+  return stripControlChars(input, true)
+    .replace(/[\r\n]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+export function sanitizeText(input: string): string {
+  return stripControlChars(input, true)
+    .replace(/\r\n/g, '\n')
+    .replace(/\r/g, '\n')
+    .trim();
+}
+
+function getAllowedOrigins(): Set<string> {
+  const configured = (process.env.ALLOWED_ORIGIN || '')
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+
+  if (process.env.NODE_ENV !== 'production') {
+    configured.push('http://localhost:5173', 'http://localhost:4173');
+  }
+
+  return new Set(configured);
+}
+
+function applySecurityAndCorsHeaders(
+  req: VercelRequest,
+  res: VercelResponse
+): { allowed: boolean } {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('Vary', 'Origin');
+
+  const rawOrigin = req.headers.origin;
+  const origin = Array.isArray(rawOrigin) ? rawOrigin[0] : rawOrigin;
+
+  if (!origin) {
+    // Same-origin or server-to-server request without Origin header
+    return { allowed: true };
+  }
+
+  const allowedOrigins = getAllowedOrigins();
+  if (!allowedOrigins.has(origin)) {
+    return { allowed: false };
+  }
+
+  res.setHeader('Access-Control-Allow-Origin', origin);
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Max-Age', '86400');
+
+  return { allowed: true };
+}
 
 function sendJson(
   res: VercelResponse,
   statusCode: number,
   payload: { ok: boolean; message: string }
-) {
+): void {
   if (typeof res.status === 'function' && typeof res.json === 'function') {
     const statusRes = res.status(statusCode);
     if (typeof statusRes.json === 'function') {
@@ -52,21 +134,22 @@ function getClientIp(req: VercelRequest): string {
   return req.socket?.remoteAddress || 'unknown-ip';
 }
 
-function isRateLimited(ip: string): boolean {
+function checkRateLimit(ip: string): { limited: boolean; retryAfterSec: number } {
   const now = Date.now();
   const current = ipHits.get(ip);
 
   if (!current || now > current.resetAt) {
     ipHits.set(ip, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
-    return false;
+    return { limited: false, retryAfterSec: 0 };
   }
 
   if (current.count >= MAX_REQUESTS_PER_WINDOW) {
-    return true;
+    const retryAfterSec = Math.max(1, Math.ceil((current.resetAt - now) / 1000));
+    return { limited: true, retryAfterSec };
   }
 
   current.count += 1;
-  return false;
+  return { limited: false, retryAfterSec: 0 };
 }
 
 async function parseRequestBody(req: VercelRequest): Promise<ContactPayload> {
@@ -96,20 +179,28 @@ async function parseRequestBody(req: VercelRequest): Promise<ContactPayload> {
   });
 }
 
-function escapeHtml(input: string): string {
-  return input
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
-}
-
 export default async function handler(
   req: VercelRequest,
   res: VercelResponse
 ): Promise<void> {
+  const cors = applySecurityAndCorsHeaders(req, res);
+
+  if (!cors.allowed) {
+    sendJson(res, 403, {
+      ok: false,
+      message: 'Origen no autorizado para acceder a este endpoint.',
+    });
+    return;
+  }
+
+  if (req.method === 'OPTIONS') {
+    res.statusCode = 204;
+    res.end();
+    return;
+  }
+
   if (req.method !== 'POST') {
+    res.setHeader('Allow', 'POST, OPTIONS');
     sendJson(res, 405, {
       ok: false,
       message: 'Método no permitido. Usá POST /api/contact.',
@@ -118,7 +209,9 @@ export default async function handler(
   }
 
   const clientIp = getClientIp(req);
-  if (isRateLimited(clientIp)) {
+  const rateLimit = checkRateLimit(clientIp);
+  if (rateLimit.limited) {
+    res.setHeader('Retry-After', String(rateLimit.retryAfterSec));
     sendJson(res, 429, {
       ok: false,
       message:
@@ -139,7 +232,8 @@ export default async function handler(
   }
 
   // Honeypot anti-spam field check
-  const honeypot = typeof body.website === 'string' ? body.website.trim() : '';
+  const honeypot =
+    typeof body.website === 'string' ? sanitizeSingleLine(body.website) : '';
   if (honeypot.length > 0) {
     sendJson(res, 200, {
       ok: true,
@@ -148,9 +242,14 @@ export default async function handler(
     return;
   }
 
-  const name = typeof body.name === 'string' ? body.name.trim() : '';
-  const email = typeof body.email === 'string' ? body.email.trim() : '';
-  const message = typeof body.message === 'string' ? body.message.trim() : '';
+  const name =
+    typeof body.name === 'string' ? sanitizeSingleLine(body.name) : '';
+  const email =
+    typeof body.email === 'string'
+      ? sanitizeSingleLine(body.email).toLowerCase()
+      : '';
+  const message =
+    typeof body.message === 'string' ? sanitizeText(body.message) : '';
 
   if (name.length < 2 || name.length > 80) {
     sendJson(res, 400, {
@@ -160,7 +259,7 @@ export default async function handler(
     return;
   }
 
-  if (email.length > 120 || !EMAIL_REGEX.test(email)) {
+  if (email.length < 5 || email.length > 120 || !EMAIL_REGEX.test(email)) {
     sendJson(res, 400, {
       ok: false,
       message: 'Ingresá una dirección de correo electrónico válida.',
@@ -180,10 +279,10 @@ export default async function handler(
   const contactEmail =
     process.env.CONTACT_EMAIL || 'ponzinalautaro6@gmail.com';
   const fromEmail =
-    process.env.RESEND_FROM_EMAIL || 'Portfolio Contacto <onboarding@resend.dev>';
+    process.env.RESEND_FROM_EMAIL ||
+    'Portfolio Contacto <onboarding@resend.dev>';
 
   if (!resendApiKey) {
-    // In local development without RESEND_API_KEY, confirm validation succeeded clearly
     if (process.env.NODE_ENV !== 'production') {
       sendJson(res, 200, {
         ok: true,
@@ -201,6 +300,10 @@ export default async function handler(
     return;
   }
 
+  const safeHtmlName = escapeHtml(name);
+  const safeHtmlEmail = escapeHtml(email);
+  const safeHtmlMessage = escapeHtml(message);
+
   try {
     const response = await fetch('https://api.resend.com/emails', {
       method: 'POST',
@@ -213,12 +316,13 @@ export default async function handler(
         to: [contactEmail],
         reply_to: email,
         subject: `[Portafolio Web] Nuevo mensaje de ${name}`,
+        text: `Nuevo mensaje desde el portafolio de Lautaro Ponzina\n\nNombre: ${name}\nEmail: ${email}\n\nMensaje:\n${message}`,
         html: `
           <h2>Nuevo mensaje desde el portafolio de Lautaro Ponzina</h2>
-          <p><strong>Nombre:</strong> ${escapeHtml(name)}</p>
-          <p><strong>Email:</strong> ${escapeHtml(email)}</p>
+          <p><strong>Nombre:</strong> ${safeHtmlName}</p>
+          <p><strong>Email:</strong> ${safeHtmlEmail}</p>
           <p><strong>Mensaje:</strong></p>
-          <pre style="font-family: monospace; white-space: pre-wrap;">${escapeHtml(message)}</pre>
+          <pre style="font-family: monospace; white-space: pre-wrap;">${safeHtmlMessage}</pre>
         `,
       }),
     });
