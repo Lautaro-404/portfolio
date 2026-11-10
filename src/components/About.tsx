@@ -59,7 +59,7 @@ export function About() {
             La tecnología me apasiona en todas sus ramas. Con los años aprendí
             edición de video, diseño gráfico, armado de páginas web, apps
             móviles y diagnóstico y reparación de hardware de PC. Dos de mis
-            proyectos, yokai-hardware-frontend y ClinAppMobile, están más
+            proyectos destacados, Yokai Hardware y ClinApp Mobile, están más
             abajo.
           </p>
         </div>

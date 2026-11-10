@@ -1,15 +1,7 @@
 import type { ReactNode } from 'react';
+import { GITHUB_URL, LINKEDIN_URL, OWNER_NAME } from '../data/profile';
 import { Button } from './ui/Button';
 import { Container } from './ui/Container';
-
-/**
- * PORTRAIT: to replace the placeholder, drop the photo in `public/` (for example
- * `public/foto-perfil.webp`, portrait 4:5) and set the path below.
- */
-const PORTRAIT_SRC: string | null = '/foto-perfil.webp';
-
-const GITHUB_URL = 'https://github.com/Lautaro-404';
-const LINKEDIN_URL = 'https://www.linkedin.com/in/lautaro-ponzina-90878932a/';
 
 function GitHubIcon() {
   return (
@@ -59,7 +51,7 @@ export function Hero() {
       <Container className="grid grid-cols-1 items-center gap-12 lg:grid-cols-12 lg:gap-14">
         <div className="enter flex flex-col items-start lg:col-span-7">
           <p className="mb-6 font-mono text-xs uppercase tracking-wider text-[var(--accent-primary)]">
-            Lautaro Ponzina // Desarrollador Full Stack
+            {OWNER_NAME} // Desarrollador Full Stack
           </p>
 
           <h1
@@ -120,39 +112,18 @@ export function Hero() {
               aria-hidden="true"
             />
             <div className="relative aspect-[4/5] w-full overflow-hidden border border-[var(--border-strong)] bg-[var(--bg-surface)]">
-              {PORTRAIT_SRC ? (
-                <picture>
-                  <source srcSet="/foto-perfil.webp" type="image/webp" />
-                  <img
-                    src="/foto-perfil.jpg"
-                    alt="Retrato de Lautaro Ponzina"
-                    width={640}
-                    height={800}
-                    fetchPriority="high"
-                    decoding="async"
-                    className="h-full w-full object-cover"
-                  />
-                </picture>
-              ) : (
-                <div
-                  data-placeholder="portrait"
-                  className="flex h-full w-full flex-col items-center justify-center gap-3 bg-[var(--bg-elevated)] p-6 text-center font-mono text-xs text-[var(--text-muted)]"
-                  style={{
-                    backgroundImage:
-                      'repeating-linear-gradient(135deg, transparent 0 14px, var(--border-subtle) 14px 15px)',
-                  }}
-                  role="img"
-                  aria-label="Espacio reservado para la foto de perfil"
-                >
-                  <span className="font-display text-6xl font-bold text-[var(--text-primary)]">
-                    LP
-                  </span>
-                  <span>FOTO PENDIENTE</span>
-                  <span className="text-[11px]">
-                    Reemplazar en src/components/Hero.tsx (PORTRAIT_SRC)
-                  </span>
-                </div>
-              )}
+              <picture>
+                <source srcSet="/foto-perfil.webp" type="image/webp" />
+                <img
+                  src="/foto-perfil.jpg"
+                  alt={`Retrato de ${OWNER_NAME}`}
+                  width={640}
+                  height={800}
+                  fetchPriority="high"
+                  decoding="async"
+                  className="h-full w-full object-cover"
+                />
+              </picture>
             </div>
           </div>
         </div>

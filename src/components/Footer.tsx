@@ -1,3 +1,9 @@
+import {
+  CONTACT_EMAIL,
+  GITHUB_URL,
+  LINKEDIN_URL,
+  OWNER_NAME,
+} from '../data/profile';
 import { Container } from './ui/Container';
 
 export function Footer() {
@@ -6,13 +12,13 @@ export function Footer() {
       <Container className="flex flex-col items-start justify-between gap-4 font-mono text-xs text-[var(--text-muted)] sm:flex-row sm:items-center">
         <div>
           <span className="font-semibold text-[var(--text-primary)]">
-            Lautaro Ponzina
+            {OWNER_NAME}
           </span>{' '}
           — UTN Facultad Regional San Rafael (Mendoza, Argentina).
         </div>
         <div className="flex flex-wrap items-center gap-5">
           <a
-            href="https://github.com/Lautaro-404"
+            href={GITHUB_URL}
             target="_blank"
             rel="noopener noreferrer"
             className="link-draw text-[var(--text-secondary)]"
@@ -20,7 +26,7 @@ export function Footer() {
             GitHub
           </a>
           <a
-            href="https://www.linkedin.com/in/lautaro-ponzina-90878932a/"
+            href={LINKEDIN_URL}
             target="_blank"
             rel="noopener noreferrer"
             className="link-draw text-[var(--text-secondary)]"
@@ -28,10 +34,10 @@ export function Footer() {
             LinkedIn
           </a>
           <a
-            href="mailto:ponzinalautaro6@gmail.com"
+            href={`mailto:${CONTACT_EMAIL}`}
             className="link-draw text-[var(--text-secondary)]"
           >
-            ponzinalautaro6@gmail.com
+            {CONTACT_EMAIL}
           </a>
         </div>
       </Container>

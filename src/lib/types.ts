@@ -14,7 +14,7 @@ export interface TechItem {
   featured?: boolean;
   mono?: boolean;
   aliases: string[];
-  svgPaths: {
+  svgPaths?: {
     viewBox: string;
     elements: Array<{
       d: string;

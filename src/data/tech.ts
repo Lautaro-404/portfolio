@@ -44,23 +44,33 @@ interface IconSource {
   hex: string;
 }
 
-type TechSeed = Omit<TechItem, 'svgPaths' | 'brandColor' | 'mono'> & {
-  icon: IconSource;
-};
+type TechSeed = Omit<TechItem, 'svgPaths' | 'brandColor' | 'mono'> &
+  (
+    | { icon: IconSource; brandColor?: never }
+    | { icon?: undefined; brandColor: string }
+  );
 
 /**
  * Brands whose official color is nearly black disappear on the dark theme,
  * so those icons are painted with the current text color instead.
  */
 function isNearBlack(hex: string): boolean {
-  const r = parseInt(hex.slice(0, 2), 16);
-  const g = parseInt(hex.slice(2, 4), 16);
-  const b = parseInt(hex.slice(4, 6), 16);
+  const clean = hex.replace(/^#/, '');
+  const r = parseInt(clean.slice(0, 2), 16);
+  const g = parseInt(clean.slice(2, 4), 16);
+  const b = parseInt(clean.slice(4, 6), 16);
   return 0.299 * r + 0.587 * g + 0.114 * b < 64;
 }
 
 function build(seed: TechSeed): TechItem {
-  const { icon, ...rest } = seed;
+  const { icon, brandColor, ...rest } = seed;
+  if (!icon) {
+    return {
+      ...rest,
+      brandColor,
+      mono: isNearBlack(brandColor),
+    };
+  }
   return {
     ...rest,
     brandColor: `#${icon.hex}`,
@@ -68,20 +78,6 @@ function build(seed: TechSeed): TechItem {
     svgPaths: { viewBox: '0 0 24 24', elements: [{ d: icon.path }] },
   };
 }
-
-/**
- * Simple Icons does not ship these brands, so they use simple geometric
- * glyphs instead of an imitation of the official logo.
- */
-const customIcons = {
-  antigravity: { hex: '4285F4', path: 'M12 2 3 21h4.2L12 10.5 16.8 21H21z' },
-  herdr: { hex: '34B38A', path: 'M4 3h4v7h8V3h4v18h-4v-7H8v7H4z' },
-  openDesign: {
-    hex: 'F59E0B',
-    path: 'M12 2a10 10 0 1 0 0 20a10 10 0 1 0 0-20z M12 6a6 6 0 1 1 0 12a6 6 0 1 1 0-12z',
-  },
-  stitch: { hex: '8AB4F8', path: 'M3 5h8v3H3zM13 10.5h8v3h-8zM3 16h8v3H3z' },
-} satisfies Record<string, IconSource>;
 
 /**
  * Technologies confirmed by the owner (GitHub README + later additions).
@@ -190,10 +186,10 @@ export const CURATED_TECH: TechItem[] = [
   }),
   build({ id: 'claude-code', name: 'Claude Code CLI', category: 'IA y agentes', icon: siClaude, aliases: ['claude', 'claude-code'] }),
   build({ id: 'opencode', name: 'OpenCode', category: 'IA y agentes', icon: siOpencode, aliases: ['opencode'] }),
-  build({ id: 'antigravity', name: 'Antigravity CLI', category: 'IA y agentes', icon: customIcons.antigravity, aliases: ['antigravity', 'agy'] }),
-  build({ id: 'herdr', name: 'Herdr', category: 'IA y agentes', icon: customIcons.herdr, aliases: ['herdr'] }),
-  build({ id: 'open-design', name: 'Open Design', category: 'IA y agentes', icon: customIcons.openDesign, aliases: ['open-design'] }),
-  build({ id: 'google-stitch', name: 'Google Stitch', category: 'IA y agentes', icon: customIcons.stitch, aliases: ['stitch', 'google-stitch'] }),
+  build({ id: 'antigravity', name: 'Antigravity CLI', category: 'IA y agentes', brandColor: '#4285F4', aliases: ['antigravity', 'agy'] }),
+  build({ id: 'herdr', name: 'Herdr', category: 'IA y agentes', brandColor: '#34B38A', aliases: ['herdr'] }),
+  build({ id: 'open-design', name: 'Open Design', category: 'IA y agentes', brandColor: '#F59E0B', aliases: ['open-design'] }),
+  build({ id: 'google-stitch', name: 'Google Stitch', category: 'IA y agentes', brandColor: '#8AB4F8', aliases: ['stitch', 'google-stitch'] }),
 ];
 
 /**

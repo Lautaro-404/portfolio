@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { OWNER_NAME } from '../data/profile';
 import type { ThemeMode } from '../lib/theme';
 
 interface HeaderProps {
@@ -15,6 +16,7 @@ const NAV_LINKS = [
 
 export function Header({ theme, onToggleTheme }: HeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
 
   const closeMenu = () => setMobileMenuOpen(false);
 
@@ -23,6 +25,7 @@ export function Header({ theme, onToggleTheme }: HeaderProps) {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         setMobileMenuOpen(false);
+        menuButtonRef.current?.focus();
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -47,7 +50,7 @@ export function Header({ theme, onToggleTheme }: HeaderProps) {
           </span>
           <div className="flex flex-col">
             <span className="font-display text-sm font-semibold tracking-tight text-[var(--text-primary)]">
-              Lautaro Ponzina
+              {OWNER_NAME}
             </span>
             <span
               className="font-mono text-[11px] text-[var(--text-muted)]"
@@ -103,6 +106,7 @@ export function Header({ theme, onToggleTheme }: HeaderProps) {
           </button>
 
           <button
+            ref={menuButtonRef}
             type="button"
             onClick={() => setMobileMenuOpen((prev) => !prev)}
             className="inline-flex h-9 w-9 items-center justify-center border border-[var(--border-strong)] bg-[var(--bg-surface)] font-mono text-xs text-[var(--text-primary)] md:hidden cursor-pointer"

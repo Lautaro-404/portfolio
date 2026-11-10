@@ -1,13 +1,11 @@
-import { motion, useReducedMotion } from 'motion/react';
 import { CURATED_TECH, TECH_CATEGORIES } from '../data/tech';
 import { computeLanguageSummary } from '../lib/languages';
 import type { ProjectItem, TechItem } from '../lib/types';
+import { Section } from './ui/Section';
 
 interface TechStackProps {
   projects: ProjectItem[];
 }
-
-const EASE = [0.22, 1, 0.36, 1] as const;
 
 export function TechIcon({
   item,
@@ -16,6 +14,22 @@ export function TechIcon({
   item: TechItem;
   size?: number;
 }) {
+  if (!item.svgPaths) {
+    return (
+      <span
+        aria-hidden="true"
+        className="inline-flex shrink-0 items-center justify-center font-mono text-[11px] font-bold leading-none select-none"
+        style={{
+          width: size,
+          height: size,
+          color: item.mono ? 'currentColor' : item.brandColor,
+        }}
+      >
+        &gt;_
+      </span>
+    );
+  }
+
   return (
     <svg
       width={size}
@@ -80,115 +94,85 @@ function LanguageSummary({ projects }: { projects: ProjectItem[] }) {
 }
 
 export function TechStack({ projects }: TechStackProps) {
-  const reduceMotion = useReducedMotion();
-
-  const reveal = (delay = 0) =>
-    reduceMotion
-      ? {}
-      : {
-          initial: { opacity: 0, y: 12 },
-          whileInView: { opacity: 1, y: 0 },
-          viewport: { once: true, margin: '-60px' },
-          transition: { duration: 0.5, delay, ease: EASE },
-        };
-
   return (
-    <section
+    <Section
       id="tecnologias"
-      aria-labelledby="tech-heading"
-      className="section-screen"
+      eyebrow="02 // TECNOLOGÍAS"
+      title="Con qué trabajo"
+      subtitle="Mi foco está en el backend con Java y Spring Boot. Lo destacado es lo que uso a diario; el resto es el entorno que lo rodea."
     >
-      <div className="wrap">
-        <div className="border-b border-[var(--border-subtle)] pb-8">
-          <div className="font-mono text-xs font-semibold uppercase tracking-wider text-[var(--accent-primary)]">
-            02 // Tecnologías
-          </div>
-          <h2
-            id="tech-heading"
-            className="mt-2 font-display text-2xl font-bold tracking-tight text-[var(--text-primary)] sm:text-3xl"
-          >
-            Con qué trabajo
-          </h2>
-          <p className="mt-3 max-w-2xl text-sm leading-relaxed text-[var(--text-secondary)]">
-            Mi foco está en el backend con Java y Spring Boot. Lo destacado es
-            lo que uso a diario; el resto es el entorno que lo rodea.
-          </p>
-        </div>
+      <div>
+        {TECH_CATEGORIES.map((category, catIdx) => {
+          const items = CURATED_TECH.filter((t) => t.category === category);
+          const featured = items.filter((t) => t.featured);
+          const rest = items.filter((t) => !t.featured);
 
-        <div className="mt-2">
-          {TECH_CATEGORIES.map((category, catIdx) => {
-            const items = CURATED_TECH.filter((t) => t.category === category);
-            const featured = items.filter((t) => t.featured);
-            const rest = items.filter((t) => !t.featured);
-
-            return (
-              <motion.div
-                key={category}
-                {...reveal()}
-                className="grid grid-cols-1 gap-5 border-b border-[var(--border-subtle)] py-8 last:border-b-0 lg:grid-cols-12 lg:gap-8"
-              >
-                <div className="lg:col-span-3">
-                  <div className="font-mono text-xs text-[var(--accent-primary)]">
-                    {String(catIdx + 1).padStart(2, '0')}
-                  </div>
-                  <h3 className="mt-1 font-display text-lg font-semibold text-[var(--text-primary)]">
-                    {category}
-                  </h3>
-                  <p className="mt-1 font-mono text-xs text-[var(--text-muted)]">
-                    {items.length} {items.length === 1 ? 'herramienta' : 'herramientas'}
-                  </p>
+          return (
+            <div
+              key={category}
+              className="enter grid grid-cols-1 gap-5 border-b border-[var(--border-subtle)] py-8 first:pt-0 last:border-b-0 lg:grid-cols-12 lg:gap-8"
+            >
+              <div className="lg:col-span-3">
+                <div className="font-mono text-xs text-[var(--accent-primary)]">
+                  {String(catIdx + 1).padStart(2, '0')}
                 </div>
+                <h3 className="mt-1 font-display text-lg font-semibold text-[var(--text-primary)]">
+                  {category}
+                </h3>
+                <p className="mt-1 font-mono text-xs text-[var(--text-muted)]">
+                  {items.length} {items.length === 1 ? 'herramienta' : 'herramientas'}
+                </p>
+              </div>
 
-                <div className="space-y-3 lg:col-span-9">
-                  {featured.length > 0 && (
-                    <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                      {featured.map((tech) => (
-                        <li
-                          key={tech.id}
-                          className="tech-panel tech-panel-interactive flex items-center gap-4 p-4"
+              <div className="space-y-3 lg:col-span-9">
+                {featured.length > 0 && (
+                  <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    {featured.map((tech) => (
+                      <li
+                        key={tech.id}
+                        className="tech-panel flex items-center gap-4 p-4"
+                      >
+                        <span
+                          className="flex h-12 w-12 shrink-0 items-center justify-center border border-[var(--border-subtle)] bg-[var(--bg-primary)] text-[var(--text-primary)]"
+                          style={{ borderLeftColor: tech.brandColor, borderLeftWidth: 3 }}
                         >
-                          <span
-                            className="flex h-12 w-12 shrink-0 items-center justify-center border border-[var(--border-subtle)] bg-[var(--bg-primary)] text-[var(--text-primary)]"
-                            style={{ borderLeftColor: tech.brandColor, borderLeftWidth: 3 }}
-                          >
-                            <TechIcon item={tech} size={26} />
+                          <TechIcon item={tech} size={26} />
+                        </span>
+                        <span className="min-w-0">
+                          <span className="block font-display text-base font-semibold text-[var(--text-primary)]">
+                            {tech.name}
                           </span>
-                          <span className="min-w-0">
-                            <span className="block font-display text-base font-semibold text-[var(--text-primary)]">
-                              {tech.name}
+                          {tech.role && (
+                            <span className="mt-0.5 block text-xs leading-relaxed text-[var(--text-secondary)]">
+                              {tech.role}
                             </span>
-                            {tech.role && (
-                              <span className="mt-0.5 block text-xs leading-relaxed text-[var(--text-secondary)]">
-                                {tech.role}
-                              </span>
-                            )}
-                          </span>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
+                          )}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
 
-                  {rest.length > 0 && (
-                    <ul className="flex flex-wrap gap-2">
-                      {rest.map((tech) => (
-                        <li
-                          key={tech.id}
-                          className="tech-panel tech-panel-interactive inline-flex items-center gap-2 px-3 py-2 text-[var(--text-primary)]"
-                        >
-                          <TechIcon item={tech} size={16} />
-                          <span className="font-mono text-xs">{tech.name}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-              </motion.div>
-            );
-          })}
-        </div>
-
-        <LanguageSummary projects={projects} />
+                {rest.length > 0 && (
+                  <ul className="flex flex-wrap gap-2">
+                    {rest.map((tech) => (
+                      <li
+                        key={tech.id}
+                        className="tech-panel inline-flex items-center gap-2 px-3 py-2 text-[var(--text-primary)]"
+                      >
+                        <TechIcon item={tech} size={16} />
+                        <span className="font-mono text-xs">{tech.name}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </div>
+          );
+        })}
       </div>
-    </section>
+
+      <LanguageSummary projects={projects} />
+    </Section>
   );
 }

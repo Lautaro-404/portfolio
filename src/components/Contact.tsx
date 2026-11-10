@@ -1,4 +1,10 @@
-import { type FormEvent, useRef, useState } from 'react';
+import { type FormEvent, useEffect, useRef, useState } from 'react';
+import {
+  CONTACT_EMAIL,
+  GITHUB_URL,
+  LINKEDIN_DISPLAY,
+  LINKEDIN_URL,
+} from '../data/profile';
 import {
   CONTACT_LIMITS,
   type ContactFieldErrors,
@@ -12,6 +18,7 @@ import type {
   ContactRequestPayload,
   ContactResponsePayload,
 } from '../lib/types';
+import { Container } from './ui/Container';
 
 type SubmitStatus = 'idle' | 'submitting' | 'success' | 'error';
 
@@ -31,6 +38,15 @@ export function Contact() {
   const nameInputRef = useRef<HTMLInputElement>(null);
   const emailInputRef = useRef<HTMLInputElement>(null);
   const messageInputRef = useRef<HTMLTextAreaElement>(null);
+  const copyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (copyTimeoutRef.current !== null) {
+        clearTimeout(copyTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const focusField = (field: ContactFieldName | null) => {
     if (field === 'name') {
@@ -77,9 +93,12 @@ export function Contact() {
 
   const handleCopyEmail = async () => {
     try {
-      await navigator.clipboard.writeText('ponzinalautaro6@gmail.com');
+      await navigator.clipboard.writeText(CONTACT_EMAIL);
       setCopiedEmail(true);
-      setTimeout(() => setCopiedEmail(false), 2500);
+      if (copyTimeoutRef.current !== null) {
+        clearTimeout(copyTimeoutRef.current);
+      }
+      copyTimeoutRef.current = setTimeout(() => setCopiedEmail(false), 2500);
     } catch {
       setCopiedEmail(false);
     }
@@ -160,7 +179,7 @@ export function Contact() {
       aria-labelledby="contact-heading"
       className="section-screen border-b-0"
     >
-      <div className="wrap grid grid-cols-1 gap-10 lg:grid-cols-12 lg:gap-12">
+      <Container className="grid grid-cols-1 gap-10 lg:grid-cols-12 lg:gap-12">
         {/* Left column: Direct channels (5 cols) */}
         <div className="lg:col-span-5">
           <div className="font-mono text-xs font-semibold uppercase tracking-wider text-[var(--accent-primary)]">
@@ -185,15 +204,20 @@ export function Contact() {
               </div>
               <div className="mt-1.5 flex flex-wrap items-center justify-between gap-2">
                 <a
-                  href="mailto:ponzinalautaro6@gmail.com"
+                  href={`mailto:${CONTACT_EMAIL}`}
                   className="font-semibold text-[var(--text-primary)] no-underline hover:text-[var(--accent-primary)]"
                 >
-                  ponzinalautaro6@gmail.com
+                  {CONTACT_EMAIL}
                 </a>
                 <button
                   type="button"
                   onClick={handleCopyEmail}
-                  aria-label="Copiar dirección de correo electrónico ponzinalautaro6@gmail.com"
+                  aria-label={
+                    copiedEmail
+                      ? `Dirección de correo ${CONTACT_EMAIL} copiada al portapapeles`
+                      : `Copiar dirección de correo electrónico ${CONTACT_EMAIL}`
+                  }
+                  aria-live="polite"
                   className="border border-[var(--border-strong)] bg-[var(--bg-primary)] px-2.5 py-1 text-[11px] text-[var(--text-secondary)] transition-colors hover:border-[var(--accent-primary)] hover:text-[var(--text-primary)] cursor-pointer"
                 >
                   {copiedEmail ? 'COPIADO' : 'COPIAR'}
@@ -207,12 +231,12 @@ export function Contact() {
               </div>
               <div className="mt-1.5">
                 <a
-                  href="https://www.linkedin.com/in/lautaro-ponzina-90878932a/"
+                  href={LINKEDIN_URL}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="link-draw font-semibold text-[var(--text-primary)]"
                 >
-                  linkedin.com/in/lautaro-ponzina-90878932a -&gt;
+                  {LINKEDIN_DISPLAY} -&gt;
                 </a>
               </div>
             </div>
@@ -223,7 +247,7 @@ export function Contact() {
               </div>
               <div className="mt-1.5">
                 <a
-                  href="https://github.com/Lautaro-404"
+                  href={GITHUB_URL}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="link-draw font-semibold text-[var(--text-primary)]"
@@ -296,7 +320,6 @@ export function Contact() {
                 {errors.name && (
                   <p
                     id="contact-name-error"
-                    role="alert"
                     className="mt-1.5 font-mono text-xs text-[var(--danger)]"
                   >
                     {errors.name}
@@ -335,7 +358,6 @@ export function Contact() {
                 {errors.email && (
                   <p
                     id="contact-email-error"
-                    role="alert"
                     className="mt-1.5 font-mono text-xs text-[var(--danger)]"
                   >
                     {errors.email}
@@ -387,7 +409,6 @@ export function Contact() {
                 {errors.message && (
                   <p
                     id="contact-message-error"
-                    role="alert"
                     className="mt-1.5 font-mono text-xs text-[var(--danger)]"
                   >
                     {errors.message}
@@ -453,7 +474,7 @@ export function Contact() {
             </div>
           </form>
         </div>
-      </div>
+      </Container>
     </section>
   );
 }
