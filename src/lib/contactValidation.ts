@@ -14,15 +14,47 @@ export const CONTACT_LIMITS = {
   message: { min: 10, max: 2000 },
 } as const;
 
-const EMAIL_REGEX =
+export const EMAIL_REGEX =
   /^[^\s@<>()[\]\\.,;:@"]+(\.[^\s@<>()[\]\\.,;:@"]+)*@[^\s@<>()[\]\\.,;:@"]+(\.[^\s@<>()[\]\\.,;:@"]+)*\.[^\s@<>()[\]\\.,;:@"]{2,}$/;
 
-function normalizeSingleLine(input: string): string {
-  return input.replace(/[\r\n]+/g, ' ').replace(/\s+/g, ' ').trim();
+export function stripControlChars(
+  input: string,
+  preserveNewlines: boolean
+): string {
+  let out = '';
+  for (let i = 0; i < input.length; i++) {
+    const code = input.charCodeAt(i);
+    const isNewline = code === 10 || code === 13; // \n or \r
+    const isTab = code === 9; // \t
+    const isControl = (code >= 0 && code <= 31) || code === 127;
+    if (!isControl || isTab || (preserveNewlines && isNewline)) {
+      out += input[i];
+    }
+  }
+  return out;
 }
 
-function normalizeMessage(input: string): string {
-  return input.replace(/\r\n/g, '\n').replace(/\r/g, '\n').trim();
+export function escapeHtml(input: string): string {
+  return input
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+export function sanitizeSingleLine(input: string): string {
+  return stripControlChars(input, true)
+    .replace(/[\r\n]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+export function sanitizeText(input: string): string {
+  return stripControlChars(input, true)
+    .replace(/\r\n/g, '\n')
+    .replace(/\r/g, '\n')
+    .trim();
 }
 
 export function validateContactField(
@@ -30,7 +62,7 @@ export function validateContactField(
   rawValue: string
 ): string | undefined {
   if (field === 'name') {
-    const value = normalizeSingleLine(rawValue);
+    const value = sanitizeSingleLine(rawValue);
     if (value.length === 0) {
       return 'Ingresá tu nombre o empresa.';
     }
@@ -44,7 +76,7 @@ export function validateContactField(
   }
 
   if (field === 'email') {
-    const value = normalizeSingleLine(rawValue).toLowerCase();
+    const value = sanitizeSingleLine(rawValue).toLowerCase();
     if (value.length === 0) {
       return 'Ingresá tu correo electrónico.';
     }
@@ -58,7 +90,7 @@ export function validateContactField(
     return undefined;
   }
 
-  const value = normalizeMessage(rawValue);
+  const value = sanitizeText(rawValue);
   if (value.length === 0) {
     return 'Escribí un mensaje para poder responderte.';
   }

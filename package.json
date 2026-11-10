@@ -9,9 +9,12 @@
     "prebuild": "npm run fetch:github",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "test:api": "node --experimental-strip-types --test api/contact.test.ts",
+    "test:api": "node --experimental-strip-types --test src/lib/contact.api.test.ts",
     "test:client": "node --experimental-strip-types --test src/lib/contactValidation.test.ts",
     "preview": "vite preview"
+  },
+  "overrides": {
+    "minimatch": "^11.0.1"
   },
   "dependencies": {
     "@fontsource-variable/jetbrains-mono": "^5.3.0",

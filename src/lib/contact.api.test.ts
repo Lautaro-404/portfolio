@@ -7,7 +7,7 @@ import handler, {
   sanitizeText,
   type VercelRequest,
   type VercelResponse,
-} from './contact.ts';
+} from '../../api/contact.ts';
 
 interface MockResponse {
   statusCode: number;
@@ -73,14 +73,15 @@ function createMockRes(): MockResponse & VercelResponse {
 describe('POST /api/contact', () => {
   beforeEach(() => {
     __resetRateLimitForTests();
-    process.env.ALLOWED_ORIGIN = 'https://lautaroponzina.vercel.app';
+    process.env.ALLOWED_ORIGIN = 'https://lautaro-ponzina.vercel.app';
+    process.env.NODE_ENV = 'test';
     delete process.env.RESEND_API_KEY;
   });
 
   it('rejects non-POST methods with 405 and Allow header', async () => {
     const req = createMockReq({
       method: 'GET',
-      headers: { origin: 'https://lautaroponzina.vercel.app' },
+      headers: { origin: 'https://lautaro-ponzina.vercel.app' },
     });
     const res = createMockRes();
 
@@ -95,7 +96,7 @@ describe('POST /api/contact', () => {
   it('handles OPTIONS preflight from allowed origin with 204 and strict CORS headers', async () => {
     const req = createMockReq({
       method: 'OPTIONS',
-      headers: { origin: 'https://lautaroponzina.vercel.app' },
+      headers: { origin: 'https://lautaro-ponzina.vercel.app' },
     });
     const res = createMockRes();
 
@@ -104,10 +105,113 @@ describe('POST /api/contact', () => {
     assert.equal(res.statusCode, 204);
     assert.equal(
       res.getHeader('access-control-allow-origin'),
-      'https://lautaroponzina.vercel.app'
+      'https://lautaro-ponzina.vercel.app'
     );
     assert.equal(res.getHeader('access-control-allow-methods'), 'POST, OPTIONS');
     assert.equal(res.getHeader('vary'), 'Origin');
+  });
+
+  it('allows same-origin POST requests matching Host / X-Forwarded-Host even when ALLOWED_ORIGIN is unset', async () => {
+    delete process.env.ALLOWED_ORIGIN;
+    process.env.NODE_ENV = 'production';
+
+    const req = createMockReq({
+      method: 'POST',
+      headers: {
+        origin: 'https://portfolio-preview-123.vercel.app',
+        'x-forwarded-host': 'portfolio-preview-123.vercel.app',
+        'content-type': 'application/json',
+      },
+      body: {
+        name: 'Laura Diaz',
+        email: 'laura@empresa.com',
+        message: 'Hola Lautaro, te escribo desde una URL de preview de Vercel.',
+      },
+    });
+    const res = createMockRes();
+
+    await handler(req, res);
+
+    // Without RESEND_API_KEY in production it reaches 503 (past the 403 CORS gate)
+    assert.equal(res.statusCode, 503);
+    assert.equal(
+      res.getHeader('access-control-allow-origin'),
+      'https://portfolio-preview-123.vercel.app'
+    );
+  });
+
+  it('rejects POST requests without Origin or same-origin Referer in production with 403', async () => {
+    process.env.NODE_ENV = 'production';
+
+    const req = createMockReq({
+      method: 'POST',
+      headers: {
+        host: 'lautaro-ponzina.vercel.app',
+      },
+      body: {
+        name: 'Bot Script',
+        email: 'bot@example.com',
+        message: 'Intento de envio directo por script sin encabezado Origin.',
+      },
+    });
+    const res = createMockRes();
+
+    await handler(req, res);
+
+    assert.equal(res.statusCode, 403);
+  });
+
+  it('rejects JSON array payloads with 400', async () => {
+    const req = createMockReq({
+      method: 'POST',
+      headers: { origin: 'https://lautaro-ponzina.vercel.app' },
+      body: ['invalid', 'array'],
+    });
+    const res = createMockRes();
+
+    await handler(req, res);
+
+    assert.equal(res.statusCode, 400);
+  });
+
+  it('uses x-vercel-forwarded-for over spoofed x-forwarded-for for rate limiting', async () => {
+    for (let i = 0; i < 3; i++) {
+      const res = createMockRes();
+      await handler(
+        createMockReq({
+          headers: {
+            origin: 'https://lautaro-ponzina.vercel.app',
+            'x-forwarded-for': `192.0.2.${i + 1}`,
+            'x-vercel-forwarded-for': '198.51.100.77',
+          },
+          body: {
+            name: 'Carlos Ruiz',
+            email: 'carlos@empresa.com',
+            message: 'Consulta tecnica sobre desarrollo full stack.',
+          },
+        }),
+        res
+      );
+      assert.equal(res.statusCode, 200);
+    }
+
+    const blockedRes = createMockRes();
+    await handler(
+      createMockReq({
+        headers: {
+          origin: 'https://lautaro-ponzina.vercel.app',
+          'x-forwarded-for': '192.0.2.250',
+          'x-vercel-forwarded-for': '198.51.100.77',
+        },
+        body: {
+          name: 'Carlos Ruiz',
+          email: 'carlos@empresa.com',
+          message: 'Cuarto envio con x-forwarded-for rotado pero misma IP real.',
+        },
+      }),
+      blockedRes
+    );
+    assert.equal(blockedRes.statusCode, 429);
   });
 
   it('rejects requests from unauthorized CORS origins with 403', async () => {
@@ -135,7 +239,7 @@ describe('POST /api/contact', () => {
     const resShortName = createMockRes();
     await handler(
       createMockReq({
-        headers: { origin: 'https://lautaroponzina.vercel.app' },
+        headers: { origin: 'https://lautaro-ponzina.vercel.app' },
         body: {
           name: 'A',
           email: 'valido@dominio.com',
@@ -150,7 +254,7 @@ describe('POST /api/contact', () => {
     const resBadEmail = createMockRes();
     await handler(
       createMockReq({
-        headers: { origin: 'https://lautaroponzina.vercel.app' },
+        headers: { origin: 'https://lautaro-ponzina.vercel.app' },
         body: {
           name: 'Maria Gomez',
           email: 'correo-invalido@dominio',
@@ -165,7 +269,7 @@ describe('POST /api/contact', () => {
     const resShortMsg = createMockRes();
     await handler(
       createMockReq({
-        headers: { origin: 'https://lautaroponzina.vercel.app' },
+        headers: { origin: 'https://lautaro-ponzina.vercel.app' },
         body: {
           name: 'Maria Gomez',
           email: 'maria@dominio.com',
@@ -181,7 +285,7 @@ describe('POST /api/contact', () => {
     await handler(
       createMockReq({
         ip: '198.51.100.99',
-        headers: { origin: 'https://lautaroponzina.vercel.app' },
+        headers: { origin: 'https://lautaro-ponzina.vercel.app' },
         body: {
           name: 'Maria Gomez',
           email: 'maria.gomez@empresa.com.ar',
@@ -204,7 +308,7 @@ describe('POST /api/contact', () => {
 
     try {
       const req = createMockReq({
-        headers: { origin: 'https://lautaroponzina.vercel.app' },
+        headers: { origin: 'https://lautaro-ponzina.vercel.app' },
         body: {
           name: 'Spam Bot',
           email: 'bot@spam.com',
@@ -227,7 +331,7 @@ describe('POST /api/contact', () => {
     const makeValidReq = () =>
       createMockReq({
         ip: '203.0.113.55',
-        headers: { origin: 'https://lautaroponzina.vercel.app' },
+        headers: { origin: 'https://lautaro-ponzina.vercel.app' },
         body: {
           name: 'Carlos Ruiz',
           email: 'carlos@empresa.com',
@@ -276,7 +380,7 @@ describe('POST /api/contact', () => {
 
     try {
       const req = createMockReq({
-        headers: { origin: 'https://lautaroponzina.vercel.app' },
+        headers: { origin: 'https://lautaro-ponzina.vercel.app' },
         body: {
           name: 'Ana\r\nBcc: attacker@evil.com <script>alert(1)</script>',
           email: 'ana@empresa.com',

@@ -1,4 +1,13 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
+import {
+  CONTACT_LIMITS,
+  EMAIL_REGEX,
+  escapeHtml,
+  sanitizeSingleLine,
+  sanitizeText,
+} from '../src/lib/contactValidation.ts';
+
+export { escapeHtml, sanitizeSingleLine, sanitizeText };
 
 interface ContactPayload {
   name?: unknown;
@@ -20,62 +29,61 @@ export interface VercelResponse extends ServerResponse {
 
 const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000; // 10 minutes
 const MAX_REQUESTS_PER_WINDOW = 3;
+const MAX_TRACKED_IPS = 1000;
 const ipHits = new Map<string, { count: number; resetAt: number }>();
-
-const EMAIL_REGEX = /^[^\s@<>()[\]\\.,;:@"]+(\.[^\s@<>()[\]\\.,;:@"]+)*@[^\s@<>()[\]\\.,;:@"]+(\.[^\s@<>()[\]\\.,;:@"]+)*\.[^\s@<>()[\]\\.,;:@"]{2,}$/;
-
-function stripControlChars(input: string, preserveNewlines: boolean): string {
-  let out = '';
-  for (let i = 0; i < input.length; i++) {
-    const code = input.charCodeAt(i);
-    const isNewline = code === 10 || code === 13; // \n or \r
-    const isTab = code === 9; // \t
-    const isControl = (code >= 0 && code <= 31) || code === 127;
-    if (!isControl || isTab || (preserveNewlines && isNewline)) {
-      out += input[i];
-    }
-  }
-  return out;
-}
 
 export function __resetRateLimitForTests(): void {
   ipHits.clear();
 }
 
-export function escapeHtml(input: string): string {
-  return input
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
+function firstHeaderValue(value: string | string[] | undefined): string | undefined {
+  if (Array.isArray(value)) {
+    return value[0]?.trim();
+  }
+  return typeof value === 'string' ? value.trim() : undefined;
 }
 
-export function sanitizeSingleLine(input: string): string {
-  return stripControlChars(input, true)
-    .replace(/[\r\n]+/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim();
-}
-
-export function sanitizeText(input: string): string {
-  return stripControlChars(input, true)
-    .replace(/\r\n/g, '\n')
-    .replace(/\r/g, '\n')
-    .trim();
-}
-
-function getAllowedOrigins(): Set<string> {
+function getAllowedOrigins(req: VercelRequest): Set<string> {
   const configured = (process.env.ALLOWED_ORIGIN || '')
     .split(',')
     .map((origin) => origin.trim())
     .filter(Boolean);
+
+  const hostHeader =
+    firstHeaderValue(req.headers['x-forwarded-host']) ||
+    firstHeaderValue(req.headers.host);
+
+  const candidateHosts = [
+    hostHeader,
+    process.env.VERCEL_URL,
+    process.env.VERCEL_BRANCH_URL,
+    process.env.VERCEL_PROJECT_PRODUCTION_URL,
+  ].filter((h): h is string => Boolean(h && h.trim()));
+
+  for (const host of candidateHosts) {
+    const cleanHost = host.replace(/^https?:\/\//, '').split('/')[0].trim();
+    if (cleanHost) {
+      configured.push(`https://${cleanHost}`);
+      if (process.env.NODE_ENV !== 'production') {
+        configured.push(`http://${cleanHost}`);
+      }
+    }
+  }
 
   if (process.env.NODE_ENV !== 'production') {
     configured.push('http://localhost:5173', 'http://localhost:4173');
   }
 
   return new Set(configured);
+}
+
+function extractRefererOrigin(referer: string | undefined): string | null {
+  if (!referer) return null;
+  try {
+    return new URL(referer).origin;
+  } catch {
+    return null;
+  }
 }
 
 function applySecurityAndCorsHeaders(
@@ -85,15 +93,21 @@ function applySecurityAndCorsHeaders(
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('Vary', 'Origin');
 
-  const rawOrigin = req.headers.origin;
-  const origin = Array.isArray(rawOrigin) ? rawOrigin[0] : rawOrigin;
+  const origin = firstHeaderValue(req.headers.origin);
+  const allowedOrigins = getAllowedOrigins(req);
 
   if (!origin) {
-    // Same-origin or server-to-server request without Origin header
+    if (process.env.NODE_ENV === 'production' && req.method === 'POST') {
+      const refererOrigin = extractRefererOrigin(
+        firstHeaderValue(req.headers.referer)
+      );
+      if (!refererOrigin || !allowedOrigins.has(refererOrigin)) {
+        return { allowed: false };
+      }
+    }
     return { allowed: true };
   }
 
-  const allowedOrigins = getAllowedOrigins();
   if (!allowedOrigins.has(origin)) {
     return { allowed: false };
   }
@@ -124,14 +138,38 @@ function sendJson(
 }
 
 function getClientIp(req: VercelRequest): string {
-  const forwarded = req.headers['x-forwarded-for'];
-  if (typeof forwarded === 'string' && forwarded.length > 0) {
+  const vercelForwarded = firstHeaderValue(
+    req.headers['x-vercel-forwarded-for']
+  );
+  if (vercelForwarded) {
+    return vercelForwarded.split(',')[0].trim();
+  }
+
+  const realIp = firstHeaderValue(req.headers['x-real-ip']);
+  if (realIp) {
+    return realIp;
+  }
+
+  const forwarded = firstHeaderValue(req.headers['x-forwarded-for']);
+  if (forwarded) {
     return forwarded.split(',')[0].trim();
   }
-  if (Array.isArray(forwarded) && forwarded.length > 0) {
-    return forwarded[0].trim();
-  }
+
   return req.socket?.remoteAddress || 'unknown-ip';
+}
+
+function pruneRateLimitMap(now: number): void {
+  if (ipHits.size < 500) return;
+  for (const [key, entry] of ipHits) {
+    if (now > entry.resetAt) {
+      ipHits.delete(key);
+    }
+  }
+  while (ipHits.size >= MAX_TRACKED_IPS) {
+    const oldestKey = ipHits.keys().next().value;
+    if (oldestKey === undefined) break;
+    ipHits.delete(oldestKey);
+  }
 }
 
 function checkRateLimit(ip: string): { limited: boolean; retryAfterSec: number } {
@@ -139,6 +177,7 @@ function checkRateLimit(ip: string): { limited: boolean; retryAfterSec: number }
   const current = ipHits.get(ip);
 
   if (!current || now > current.resetAt) {
+    pruneRateLimitMap(now);
     ipHits.set(ip, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
     return { limited: false, retryAfterSec: 0 };
   }
@@ -152,25 +191,37 @@ function checkRateLimit(ip: string): { limited: boolean; retryAfterSec: number }
   return { limited: false, retryAfterSec: 0 };
 }
 
+function ensurePlainObject(parsed: unknown): ContactPayload {
+  if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
+    throw new Error('Payload debe ser un objeto JSON');
+  }
+  return parsed as ContactPayload;
+}
+
 async function parseRequestBody(req: VercelRequest): Promise<ContactPayload> {
-  if (req.body && typeof req.body === 'object') {
-    return req.body as ContactPayload;
+  if (req.body !== undefined && typeof req.body !== 'string') {
+    return ensurePlainObject(req.body);
   }
   if (typeof req.body === 'string' && req.body.trim().length > 0) {
-    return JSON.parse(req.body) as ContactPayload;
+    return ensurePlainObject(JSON.parse(req.body));
   }
 
   return new Promise((resolve, reject) => {
     let raw = '';
+    let aborted = false;
     req.on('data', (chunk: Buffer) => {
+      if (aborted) return;
       raw += chunk.toString('utf8');
       if (raw.length > 32_768) {
+        aborted = true;
+        req.destroy?.();
         reject(new Error('Payload demasiado extenso'));
       }
     });
     req.on('end', () => {
+      if (aborted) return;
       try {
-        resolve(raw ? (JSON.parse(raw) as ContactPayload) : {});
+        resolve(raw ? ensurePlainObject(JSON.parse(raw)) : {});
       } catch {
         reject(new Error('JSON invalido'));
       }
@@ -251,15 +302,22 @@ export default async function handler(
   const message =
     typeof body.message === 'string' ? sanitizeText(body.message) : '';
 
-  if (name.length < 2 || name.length > 80) {
+  if (
+    name.length < CONTACT_LIMITS.name.min ||
+    name.length > CONTACT_LIMITS.name.max
+  ) {
     sendJson(res, 400, {
       ok: false,
-      message: 'El nombre debe tener entre 2 y 80 caracteres.',
+      message: `El nombre debe tener entre ${CONTACT_LIMITS.name.min} y ${CONTACT_LIMITS.name.max} caracteres.`,
     });
     return;
   }
 
-  if (email.length < 5 || email.length > 120 || !EMAIL_REGEX.test(email)) {
+  if (
+    email.length < CONTACT_LIMITS.email.min ||
+    email.length > CONTACT_LIMITS.email.max ||
+    !EMAIL_REGEX.test(email)
+  ) {
     sendJson(res, 400, {
       ok: false,
       message: 'Ingresá una dirección de correo electrónico válida.',
@@ -267,10 +325,13 @@ export default async function handler(
     return;
   }
 
-  if (message.length < 10 || message.length > 2000) {
+  if (
+    message.length < CONTACT_LIMITS.message.min ||
+    message.length > CONTACT_LIMITS.message.max
+  ) {
     sendJson(res, 400, {
       ok: false,
-      message: 'El mensaje debe tener entre 10 y 2000 caracteres.',
+      message: `El mensaje debe tener entre ${CONTACT_LIMITS.message.min} y ${CONTACT_LIMITS.message.max} caracteres.`,
     });
     return;
   }
@@ -307,6 +368,7 @@ export default async function handler(
   try {
     const response = await fetch('https://api.resend.com/emails', {
       method: 'POST',
+      signal: AbortSignal.timeout(8000),
       headers: {
         Authorization: `Bearer ${resendApiKey}`,
         'Content-Type': 'application/json',

@@ -6,10 +6,12 @@ import contactHandler from './api/contact.ts'
 
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
-  const env = loadEnv(mode, process.cwd(), '')
-  for (const [key, value] of Object.entries(env)) {
-    if (process.env[key] === undefined) {
-      process.env[key] = value
+  const injectLocalServerEnv = () => {
+    const env = loadEnv(mode, process.cwd(), '')
+    for (const [key, value] of Object.entries(env)) {
+      if (process.env[key] === undefined) {
+        process.env[key] = value
+      }
     }
   }
 
@@ -20,11 +22,13 @@ export default defineConfig(({ mode }) => {
       {
         name: 'local-api-contact',
         configureServer(server) {
+          injectLocalServerEnv()
           server.middlewares.use('/api/contact', (req, res) => {
             void contactHandler(req, res)
           })
         },
         configurePreviewServer(server) {
+          injectLocalServerEnv()
           server.middlewares.use('/api/contact', (req, res) => {
             void contactHandler(req, res)
           })

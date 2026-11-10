@@ -22,10 +22,14 @@ describe('validateContact (client-side validation matching /api/contact)', () =>
     assert.equal(firstInvalidContactField(errors), 'name');
   });
 
-  it('enforces name boundaries: 2 to 80 characters after trimming', () => {
+  it('enforces name boundaries: 2 to 80 characters after trimming and stripping control characters', () => {
     assert.ok(
       validateContactField('name', 'A'),
       '1 char name should be rejected'
+    );
+    assert.ok(
+      validateContactField('name', 'A\u0000\u0007'),
+      '1 char name padded with ASCII control chars should be rejected'
     );
     assert.equal(
       validateContactField('name', 'Al'),
